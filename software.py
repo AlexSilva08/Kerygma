@@ -168,8 +168,6 @@ peso_paciente = ctk.CTkEntry(tela_dados,width=(screen_width *18.23/100), height=
 peso_paciente.place(relx=0.5458, rely=0.5463)
 entradas.append(peso_paciente)
 
-
-
 btn_armazenardados = Button(
     tela_dados,
     text="Cadastrar",
@@ -281,6 +279,41 @@ btn_avancarAnamnese.place(relx=0.7969, rely=0.8611)
 canvas_parametros = Canvas(tela_parametros, width=screen_width, height=screen_height)
 canvas_parametros.grid(row=0, column=0)
 canvas_parametros.create_image(0, 0, image=bg_parametros, anchor="nw")
+
+rotina = ctk.CTkScrollableFrame(
+    tela_parametros,
+    width=250,
+    height=100,
+    corner_radius = 9,
+    fg_color="#E0E7EC",
+    orientation = "vertical",
+    label_text = "Rotina de Movimentação",
+    label_font = ("Inter", fontsize, "bold"),
+    label_fg_color="#304462",
+    label_text_color="#e0e0e0"
+    )
+rotina.place(relx=0.5, rely=0.5, anchor = "center")
+
+for i in range (10):
+    boxes.CustomComboBox(
+        rotina,
+        values=["Movimentação", "Oscilação"],
+        width=(200),
+        height=(65),
+        font=("Inter", 16, "bold"),
+        button_color="#FFFFff",  # Cor do botão principal
+        dropdown_fg_color="#E0E0E0",  # Cor do fundo do dropdown
+        dropdown_text_color="#304462",  # Cor do texto no dropdown
+        img_seta=img_seta,
+        text_color="#304462",  # Cor do texto do botão principal
+        button_hover_color="#a7bbcb",  # Cor de hover do botão principal
+        dropdown_hover_color="#a7bbcb",  # Cor de hover para o dropdown
+        border_color="#A7BBCB", 
+        border_width=3, 
+        corner_radius=12,
+        bg_color="#D1DCE4"
+    ).pack()
+
 
 btn_presets = Button(
     tela_parametros,
@@ -424,6 +457,7 @@ bg_btn_click1 = Image.open("UI/Resultado/btn_clicked.png")
 bg_btn_click1 = bg_btn_click1.resize((width_btn_click, height_btn_click), Image.Resampling.LANCZOS)
 bg_btn_click = ImageTk.PhotoImage(bg_btn_click1)
 
+fontsize22 = int((screen_height * 2) / 100)
 
 def exibir_dados_paciente():
     canvas_paciente.delete("all")  # Limpa o conteúdo do Canvas antes de exibir novos dados
@@ -436,16 +470,12 @@ def exibir_dados_paciente():
     nome, idade, altura, peso, sexo = dados_paciente_lista
 
     # Posiciona cada texto usando valores relativos, sem armazenar coordenadas em variáveis
-    canvas_paciente.create_text(canvas_width * 0.1, canvas_height * 0.2, 
-                                text=f"Nome: {nome}", font=("Arial", 12, "bold"), fill="black")
-    canvas_paciente.create_text(canvas_width * 0.1, canvas_height * 0.3, 
-                                text=f"Idade: {idade} anos", font=("Arial", 12), fill="black")
-    canvas_paciente.create_text(canvas_width * 0.1, canvas_height * 0.4, 
-                                text=f"Altura: {altura} cm", font=("Arial", 12), fill="black")
-    canvas_paciente.create_text(canvas_width * 0.1, canvas_height * 0.5, 
-                                text=f"Peso: {peso} kg", font=("Arial", 12), fill="black")
-    canvas_paciente.create_text(canvas_width * 0.1, canvas_height * 0.6, 
-                                text=f"Sexo: {sexo}", font=("Arial", 12), fill="black")
+    canvas_paciente.create_text(canvas_width * 0.5, canvas_height * 0.1, 
+                                text=f"{nome}", font=("Inter", fontsize22, "bold"), fill="#304462", anchor = "center")
+    canvas_paciente.create_text(canvas_width * 0.5, canvas_height * 0.2, 
+                                text=f"Idade: {idade} anos  |  Altura: {altura}cm  |  Peso: {peso}kg  |  Sexo: {sexo}", font=("Inter", fontsize-1), fill="#656565")
+    canvas_paciente.create_text(canvas_width * 0.5, canvas_height * 0.28,
+                                text="_________________________", font=("Inter", fontsize), fill="#A3A3A3", anchor="center")
 
 # Função para exibir o canvas correto
 def exibir_canvas(canvas):
@@ -513,14 +543,12 @@ bg_btn_resultado1 = Image.open("UI/Resultado/btn_neutro.png")
 bg_btn_resultado1 = bg_btn_resultado1.resize((width_btn_resultado, height_btn_resultado), Image.Resampling.LANCZOS)
 bg_btn_resultado = ImageTk.PhotoImage(bg_btn_resultado1)
 
-fontsize_resultado = int((screen_height * 2) / 100)
-
 
 # Botões laterais
 btn_paciente = Button(
     tela_resultado,
     text="PACIENTE",
-    font=("Inter", fontsize_resultado,"bold"),
+    font=("Inter", fontsize22,"bold"),
     fg="#0B2243",
     image=bg_btn_paciente,
     width=(width_paciente-2),
@@ -535,7 +563,7 @@ btn_paciente.place(relx=0.1042, rely=0.2778, anchor = 'nw')
 btn_centro_pressao = Button(
     tela_resultado,
     text="CENTRO DE\nPRESSÃO",
-    font=("Inter", fontsize_resultado,"bold"),
+    font=("Inter", fontsize22,"bold"),
     fg="#0B2243",
     image=bg_btn_resultado,
     width=(width_btn_resultado-2),
@@ -550,7 +578,7 @@ btn_centro_pressao.place(relx=0.1042, rely=0.376, anchor = 'nw')
 btn_distr_massas = Button(
     tela_resultado,
     text="DISTRIBUIÇÃO\nDE MASSA",
-    font=("Inter", fontsize_resultado,"bold"),
+    font=("Inter", fontsize22,"bold"),
     fg="#0B2243",
     image=bg_btn_resultado,
     width=(width_btn_resultado-2),
@@ -565,7 +593,7 @@ btn_distr_massas.place(relx=0.2474, rely=0.3759, anchor = 'nw')
 btn_velocidade = Button(
     tela_resultado,
     text="VELOCIDADE",
-    font=("Inter", fontsize_resultado,"bold"),
+    font=("Inter", fontsize22,"bold"),
     fg="#0B2243",
     image=bg_btn_resultado,
     width=(width_btn_resultado-2),
@@ -580,7 +608,7 @@ btn_velocidade.place(relx=0.1042, rely=0.5880, anchor = 'nw')
 btn_emg = Button(
     tela_resultado,
     text="EMG",
-    font=("Inter", fontsize_resultado,"bold"),
+    font=("Inter", fontsize22,"bold"),
     fg="#0B2243",
     image=bg_btn_resultado,
     width=(width_btn_resultado-2),
@@ -639,6 +667,6 @@ btn_fechar2 = ctk.CTkButton(
     hover_color="#2b3a52",
     command=lambda: close_app()
 )
-btn_fechar2.place(relx=0.975, rely=-0.02)
+btn_fechar2.place(relx=0.9735, rely=-0.002)
 
 root.mainloop()
