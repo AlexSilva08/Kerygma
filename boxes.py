@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from tkinter import *
 
 ############################################################################  SPIN BOX
 entrada = []
@@ -144,8 +145,13 @@ class CustomComboBox:
 
         self.dropdown_visible = False
 
+    def grid (self, **kwargs):
+        self.button.grid(**kwargs)
+
+    def pack (self, **kwargs):
+        self.button.pack(**kwargs)
+
     def place(self, **kwargs):
-        """Permite posicionar a combobox usando place no botão principal"""
         self.button.place(**kwargs)
 
     def toggle_dropdown(self):
