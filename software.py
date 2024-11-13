@@ -3,19 +3,6 @@ from tkinter import PhotoImage
 from PIL import Image, ImageTk 
 import customtkinter as ctk
 import boxes
-import serial
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-import matplotlib.figure
-import numpy as np
-import pandas as pd
-import openpyxl
-from tkinter import filedialog
-from tkinter.filedialog import askopenfilename
-import time
-import math
-from tkinter import ttk
-import os
 
 root = ctk.CTk()
 root.title("Nome do Software")
@@ -89,7 +76,7 @@ bg_btn = ImageTk.PhotoImage(bg_btn1)
 #Variavel para tamanho de vonte dos botões gerais
 fontsize = int((screen_height * 1.83) / 100)
 
-#MARK: TELA INICIAL --------------------------------------------------------------------------------------------------------------
+##################################################################### TELA INICIAL
 
 canvas_inicial = Canvas(tela_inicial, width=1920, height=1080)
 canvas_inicial.grid(row=0, column=0)
@@ -101,14 +88,14 @@ btn_fechar = ctk.CTkButton(
     text="X",
     font=("Helvetica", 16, "bold"),
     corner_radius=14,
-    width=47,
-    height=37,
+    width=50,
+    height=40,
     text_color="#ffffff", 
     fg_color="#3e567c",
     hover_color="#2b3a52",
     command=lambda: close_app()
 )
-btn_fechar.place(relx=0.97, rely=0.002)
+btn_fechar.place(relx=0.97, rely=-0.01)
 
 # Icone de fullscreen
 icon_fullscreen = Image.open("UI/icon_fullscreen.png").resize((40, 40), Image.LANCZOS)
@@ -121,7 +108,7 @@ toogle_button = Button(
     command=toogle_fullscreen,
     bg="white"
 )
-toogle_button.place(relx=0.947, rely=0)
+toogle_button.place(relx=0.92, rely=0.05)
 
 # Título
 canvas_inicial.create_text(
@@ -147,7 +134,7 @@ btn_iniciar = Button(
 )
 btn_iniciar.place(relx=0.5, rely=0.6, anchor='center')
 
-#MARK: TELA DADOS ----------------------------------------------------------------------------------------------------------
+##################################################################### TELA DADOS
 
 canvas_dados = Canvas(tela_dados, width=screen_width, height=screen_height)
 canvas_dados.grid(row=0, column=0)
@@ -266,7 +253,7 @@ btn_avancarDados = Button(
 )
 btn_avancarDados.place(relx=0.7969, rely=0.8611)
 
-#MARK: TELA ANAMNESE --------------------------------------------------------------------------------------------------------
+##################################################################### TELA ANAMNESE
 
 canvas_anamnese = Canvas(tela_anamnese, width=screen_width, height=screen_height)
 canvas_anamnese.grid(row=0, column=0)
@@ -287,45 +274,179 @@ btn_avancarAnamnese = Button(
 )
 btn_avancarAnamnese.place(relx=0.7969, rely=0.8611)
 
-#MARK: TELA PARÂMETROS ----------------------------------------------------------------------------------------------------------
+##################################################################### TELA PARÂMETROS
 
 canvas_parametros = Canvas(tela_parametros, width=screen_width, height=screen_height)
 canvas_parametros.grid(row=0, column=0)
 canvas_parametros.create_image(0, 0, image=bg_parametros, anchor="nw")
 
+width_molduras = int((screen_width * 10.35)/100)
+height_moldura01 = int((screen_height * 24.5)/100)
+moldura1 = Image.open("UI/Parametros/moldura_01.png")
+moldura1 = moldura1.resize((width_molduras, height_moldura01 ), Image.LANCZOS)
+moldura01 = ImageTk.PhotoImage(moldura1)
+
+height_moldura02 = int((screen_height * 11.5)/100)
+moldura2 = Image.open("UI/Parametros/moldura_02.png")
+moldura2 = moldura2.resize((width_molduras, height_moldura02), Image.LANCZOS)
+moldura02 = ImageTk.PhotoImage(moldura2)
+
+###### CANVAS MOVIMENTAÇÃO
+canvas_movimentacao = Canvas(
+    tela_parametros,
+    width = (screen_width * 58.08)/100,
+    height = (screen_height * 41.20)/100,
+    bg="#E0E7EC",
+    highlightthickness=0,
+    highlightcolor=None,
+    highlightbackground=None
+)
+canvas_movimentacao.place(relx=0.3453,rely=0.3491,anchor="nw")
+
+canvas_oscilacao = Canvas(
+    tela_parametros,
+    width = (screen_width * 58.08)/100,
+    height = (screen_height * 41.20)/100,
+    bg="#E0E7EC",
+    highlightthickness=0,
+    highlightcolor=None,
+    highlightbackground=None
+)
+canvas_oscilacao.place(relx=0.3453,rely=0.3491,anchor="nw")
+
+def movimentacao_oscilacao(canvas):
+    canvas_movimentacao.place_forget()
+    canvas_oscilacao.place_forget()
+    
+    #Exibe o canvas selecionado
+    canvas.place(relx=0.3453,rely=0.3491,anchor="nw")
+
+    if canvas == canvas_movimentacao:
+        movimentacao()
+    if canvas == canvas_oscilacao:
+        oscilacao()
+
+def movimentacao():
+    canvas_movimentacao.delete("all") 
+    label_moldura01 = Label(canvas_movimentacao, image=moldura01, borderwidth=0, bg="#E0E7EC")
+    label_moldura01.image = moldura01
+    label_moldura01.place(relx=0.3865, rely= 0.1551, anchor = "nw")
+
+    label_moldura02 = Label(canvas_movimentacao, image=moldura02, borderwidth=0, bg="#E0E7EC")
+    label_moldura02.image = moldura02
+    label_moldura02.place(relx=0.5857, rely= 0.3371, anchor = "nw")
+
+    label_moldura03 = Label(canvas_movimentacao, image=moldura01, borderwidth=0, bg="#E0E7EC")
+    label_moldura03.image = moldura01
+    label_moldura03.place(relx=0.7910, rely= 0.1551, anchor = "nw")
+
+    movimento_label = Label(canvas_movimentacao, text="MOVIMENTO", font=("Inter", 16, "bold"), background="#E0E7EC", fg="#304462")
+    movimento_label.place(relx=0.1220, rely= 0.0854, anchor = "nw")
+
+    mov_label_i = Label(canvas_movimentacao, text="Tempo Inicial", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
+    mov_tempo_i = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360)
+    mov_label_i.place(relx=0.4099, rely= 0.1810, anchor = "nw")
+    mov_tempo_i.place(relx=0.4, rely= 0.2584, anchor = "nw")
+
+    mov_label_f = Label(canvas_movimentacao, text="Tempo Final", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
+    mov_tempo_f = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360)
+    mov_label_f.place(relx=0.4099, rely= 0.5181, anchor = "nw")
+    mov_tempo_f.place(relx=0.4, rely = 0.5955, anchor = "nw")
+
+    mov_label_vel = Label(canvas_movimentacao, text="Velocidade", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
+    mov_vel = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360)
+    mov_label_vel.place(relx=0.6163, rely = 0.3720, anchor = "nw")
+    mov_vel.place(relx=0.598, rely = 0.4607, anchor = "nw")
+
+    mov_label_x = Label(canvas_movimentacao, text="Ângulo X", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
+    mov_x = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360)
+    mov_label_x.place(relx=0.8323, rely = 0.1819, anchor = "nw")
+    mov_x.place(relx=0.8045, rely = 0.2584, anchor = "nw")
+
+    mov_label_y = Label(canvas_movimentacao, text="Ângulo Y", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
+    mov_y = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360)
+    mov_label_y.place(relx=0.8323, rely = 0.5181, anchor = "nw")
+    mov_y.place(relx=0.8045, rely = 0.5955, anchor = "nw")
+
+def oscilacao():
+    canvas_oscilacao.delete("all")
+    canvas_oscilacao.delete("all")  
+    label_moldura01 = Label(canvas_oscilacao, image=moldura01, borderwidth=0, bg="#E0E7EC")
+    label_moldura01.image = moldura01
+    label_moldura01.place(relx=0.3865, rely= 0.1551, anchor = "nw")
+
+    label_moldura02 = Label(canvas_oscilacao, image=moldura01, borderwidth=0, bg="#E0E7EC")
+    label_moldura02.image = moldura01
+    label_moldura02.place(relx=0.5857, rely= 0.1551, anchor = "nw")
+
+    label_moldura03 = Label(canvas_oscilacao, image=moldura01, borderwidth=0, bg="#E0E7EC")
+    label_moldura03.image = moldura01
+    label_moldura03.place(relx=0.7910, rely= 0.1551, anchor = "nw")
+
+    oscilacao_label = Label(canvas_oscilacao, text="OSCILAÇÃO", font=("Inter", 16, "bold"), background="#E0E7EC", fg="#304462")
+    oscilacao_label.place(relx=0.1220, rely= 0.0854, anchor = "nw")
+
+    osc_label_maxx = Label(canvas_oscilacao, text="Ângulo Max X", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
+    osc_maxx = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360)
+    osc_label_maxx.place(relx=0.4099, rely= 0.1810, anchor = "nw")
+    osc_maxx.place(relx=0.4, rely= 0.2584, anchor = "nw")
+
+    osc_label_minx = Label(canvas_oscilacao, text="Ângulo Min X", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
+    osc_minx = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360)
+    osc_label_minx.place(relx=0.4099, rely= 0.5181, anchor = "nw")
+    osc_minx.place(relx=0.4, rely = 0.5955, anchor = "nw")
+
+    osc_label_vel = Label(canvas_oscilacao, text="Velocidade", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
+    osc_vel = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360)
+    osc_label_vel.place(relx=0.6163, rely = 0.3720, anchor = "nw")
+    osc_vel.place(relx=0.598, rely = 0.4607, anchor = "nw")
+
+    osc_label_maxy = Label(canvas_oscilacao, text="Ângulo Max Y", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
+    osc_maxy = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360)
+    osc_label_maxy.place(relx=0.8323, rely = 0.1819, anchor = "nw")
+    osc_maxy.place(relx=0.8045, rely = 0.2584, anchor = "nw")
+
+    osc_label_miny = Label(canvas_oscilacao, text="Ângulo Min Y", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
+    osc_miny = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360)
+    osc_label_miny.place(relx=0.8323, rely = 0.5181, anchor = "nw")
+    osc_miny.place(relx=0.8045, rely = 0.5955, anchor = "nw")
+
 rotina = ctk.CTkScrollableFrame(
     tela_parametros,
-    width=250,
-    height=100,
-    corner_radius = 9,
+    width=(screen_width * 20.5 /100),
+    height=(screen_height *41/100),
+    corner_radius = 15,
     fg_color="#E0E7EC",
-    orientation = "vertical",
-    label_text = "Rotina de Movimentação",
-    label_font = ("Inter", fontsize, "bold"),
-    label_fg_color="#304462",
-    label_text_color="#e0e0e0"
+    orientation = "vertical"
     )
-rotina.place(relx=0.5, rely=0.5, anchor = "center")
+rotina.place(relx=0.0583, rely=0.3481, anchor = "nw")
 
-for i in range (10):
-    boxes.CustomComboBox(
-        rotina,
-        values=["Movimentação","Oscilação"],
-        width=(100),
-        height=(35),
-        font=("Inter", 16, "bold"),
-        button_color="#FFFFff",  # Cor do botão principal
-        dropdown_fg_color="#E0E0E0",  # Cor do fundo do dropdown
-        dropdown_text_color="#304462",  # Cor do texto no dropdown
-        img_seta=img_seta,
-        text_color="#304462",  # Cor do texto do botão principal
-        button_hover_color="#a7bbcb",  # Cor de hover do botão principal
-        dropdown_hover_color="#a7bbcb",  # Cor de hover para o dropdown
-        border_color="#A7BBCB", 
-        border_width=2, 
-        corner_radius=6,
-        bg_color="#D1DCE4"
-    ).grid()
+
+for i in range (2):
+    if i == 1:
+        Button(rotina, text="Movimentação",
+        font=("Inter", fontsize,"bold"),
+        fg="#E0E0E0",
+        image=bg_btn,
+        width=((screen_width * 9.9) / 100)-2,
+        height=((screen_height * 9.26) / 100)-2,
+        compound="center",
+        bd=0,
+        activeforeground="#f7c360",
+        command=lambda: movimentacao_oscilacao(canvas_movimentacao)).pack()
+    else:
+        Button(rotina, text="Oscilação",
+        font=("Inter", fontsize,"bold"),
+        fg="#E0E0E0",
+        image=bg_btn,
+        width=((screen_width * 9.9) / 100)-2,
+        height=((screen_height * 9.26) / 100)-2,
+        compound="center",
+        bd=0,
+        activeforeground="#f7c360",
+        command=lambda: movimentacao_oscilacao(canvas_oscilacao)).pack()
+
+###### CANVAS OSCILAÇÃO
 
 btn_presets = Button(
     tela_parametros,
@@ -356,7 +477,7 @@ btn_iniciarCarregamento = Button(
 )
 btn_iniciarCarregamento.place(relx=0.7969, rely=0.8611)
 
-#MARK: TELA CARREGAMENTO ---------------------------------------------------------------------------------------------------------------------------
+##################################################################### TELA CARREGAMENTO
 canvas_carregamento = Canvas(tela_carregamento, width=screen_width, height=screen_height)
 canvas_carregamento.grid(row=0, column=0)
 canvas_carregamento.create_image(0, 0, image=bg_carregamento, anchor="nw")
@@ -375,9 +496,22 @@ btn_parar = Button(
 )
 btn_parar.place(relx=0.1042, rely=0.8611)
 
+btn_avancarResultado = Button(
+    tela_carregamento,
+    text="COLETAR\nRESULTADOS",
+    font=("Inter", fontsize,"bold"),
+    fg="#E0E0E0",
+    image=bg_btn,
+    width=((screen_width * 9.9) / 100)-2,
+    height=((screen_height * 9.26) / 100)-2,
+    compound="center",
+    bd=0,
+    activeforeground="#f7c360",
+    command=lambda: show_frame(tela_resultado)
+)
+btn_avancarResultado.place(relx=0.7969, rely=0.8611)
 
-
-#MARK: TELA RESULTADO -----------------------------------------------------------------------------------------------------------------------------------------
+##################################################################### TELA RESULTADO
 
 canvas_resultado = Canvas(tela_resultado, width=screen_width, height=screen_height)
 canvas_resultado.grid(row=0, column=0)
@@ -431,85 +565,12 @@ canvas_emg = Canvas(
     highlightbackground="#A7BBCB"
     )
 
-#MARK: Canvas Leitura ----------------------------------------------------------------------------------------------------------------------------------
-
-#Label canvas leitura
-
-fig2 = matplotlib.figure.Figure()
-ax2 = fig2.add_subplot()
-
-canvas_grafico_leitura = Canvas(canvas_centro_pressao, 
-    width=(screen_width * 46)/100, 
-    height=(screen_height * 60)/100, 
-    bg="#ffffff",
-    highlightthickness=6,
-    highlightcolor="#A7BBCB",
-    highlightbackground="#A7BBCB")
-canvas_grafico_leitura.place(relx=0.5, rely=0.5, anchor="center")  # Centralizado na tela
-
-canvasMatplot2 = FigureCanvasTkAgg(fig2, master = canvas_grafico_leitura)
-canvasMatplot2.get_tk_widget().pack()
-
-#MARK: Ler Arquivo() --------------------------------------------------------------------------------------------------------------------------------------
-
-def LerArquivo():
-    print("Rodou")
-
-    filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
-    Dados = pd.read_excel(filename)
-
-    ax2.clear() #Limpa o grafico
-    ax2.plot(Dados.CPX,Dados.CPY)
-
-    circle = plt.Circle((0, 0), 20, fill=False)
-    ax2.add_patch(circle)
-    canvasMatplot2.draw() #Desenha o grafico
-
-    n = 0
-    Dt = 0
-
-    while n < (len(Dados.CPX))-2:
-
-        x1 = Dados.CPX[(n+1)]
-        x2 = Dados.CPX[((n+1) + 1)]
-
-        y1 = Dados.CPY[(n+1)]
-        y2 = Dados.CPY[((n+1) + 1)]
-
-        d= math.sqrt((x1-x2) ** 2+(y1-y2) ** 2)
-
-        Dt = Dt + d
-
-        n = n + 1
-
-    show_frame(tela_resultado)
-
-
-btn_avancarResultado = Button(
-    tela_carregamento,
-    text="COLETAR\nRESULTADOS",
-    font=("Inter", fontsize,"bold"),
-    fg="#E0E0E0",
-    image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
-    compound="center",
-    bd=0,
-    activeforeground="#f7c360",
-    #MARK: Botão para carregar o arquivo do excel
-    command=lambda: LerArquivo()
-)
-btn_avancarResultado.place(relx=0.7969, rely=0.8611)
-
 # Posicionamento relativo
 canvas_paciente.place(relx=0.4688, rely=0.213, anchor='nw')
 canvas_centro_pressao.place(relx=0.4688, rely=0.213, anchor='nw')
 canvas_distr_massas.place(relx=0.4688, rely=0.213, anchor='nw')
 canvas_velocidade.place(relx=0.4688, rely=0.213, anchor='nw')
 canvas_emg.place(relx=0.4688, rely=0.213, anchor='nw')
-
-
-# Conteudo Painel PACIENTE
 
 
 #Texto
@@ -566,9 +627,7 @@ def exibir_canvas(canvas):
         btn_emg.configure(fg="#0B2243", image=bg_btn_resultado)
         btn_velocidade.configure(fg="#0B2243", image=bg_btn_resultado)
 
-#MARK: Função do botão Centro de pressão 
     if canvas == canvas_centro_pressao:
-
         btn_paciente.config(fg="#0B2243", image = bg_btn_paciente)
         btn_centro_pressao.configure(fg="#E0E0E0", image=bg_btn_click)
         btn_distr_massas.configure(fg="#0B2243", image=bg_btn_resultado)
@@ -731,13 +790,13 @@ btn_fechar2 = ctk.CTkButton(
     text="X",
     font=("Inter", 16, "bold"),
     corner_radius=14,
-    width=47,
-    height=37,
+    width=50,
+    height=40,
     text_color="#ffffff", 
     fg_color="#3e567c",
     hover_color="#2b3a52",
     command=lambda: close_app()
 )
-btn_fechar2.place(relx=0.97, rely=0.002)
+btn_fechar2.place(relx=0.9735, rely=-0.002)
 
 root.mainloop()
