@@ -95,7 +95,7 @@ btn_fechar = ctk.CTkButton(
     hover_color="#2b3a52",
     command=lambda: close_app()
 )
-btn_fechar.place(relx=0.97, rely=-0.01)
+btn_fechar.place(relx=0.9735, rely=0.002)
 
 # Icone de fullscreen
 icon_fullscreen = Image.open("UI/icon_fullscreen.png").resize((40, 40), Image.LANCZOS)
@@ -108,7 +108,7 @@ toogle_button = Button(
     command=toogle_fullscreen,
     bg="white"
 )
-toogle_button.place(relx=0.92, rely=0.05)
+toogle_button.place(relx=0.95, rely=0.002)
 
 # Título
 canvas_inicial.create_text(
@@ -630,7 +630,7 @@ btn_voltarInicial.place(relx= 0.7969, rely=0.8611)
 btn_fechar2 = ctk.CTkButton(
     tela_resultado,
     text="X",
-    font=("Inter", 16, "bold"),
+    font=("Helvetica", 16, "bold"),
     corner_radius=14,
     width=50,
     height=40,
@@ -639,6 +639,6 @@ btn_fechar2 = ctk.CTkButton(
     hover_color="#2b3a52",
     command=lambda: close_app()
 )
-btn_fechar2.place(relx=0.975, rely=-0.02)
+btn_fechar2.place(relx=0.9735, rely=0.002)
 
 root.mainloop()
