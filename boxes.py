@@ -1,5 +1,8 @@
 import customtkinter as ctk
 from tkinter import *
+from tkinter import PhotoImage
+from PIL import Image, ImageTk 
+import customtkinter as ctk
 
 ############################################################################  SPIN BOX
 entrada = []
@@ -81,7 +84,7 @@ class CustomSpinbox(ctk.CTkFrame):
 
 class CustomComboBox:
     def __init__(self, master, values, width, height, font, button_color, dropdown_fg_color, dropdown_text_color, bg_color,
-                 img_seta, text_color, button_hover_color, dropdown_hover_color,border_color, border_width, corner_radius):
+                img_seta, text_color, button_hover_color, dropdown_hover_color,border_color, border_width, corner_radius):
         self.master = master
         self.values = values
         self.width = width
