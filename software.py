@@ -88,6 +88,7 @@ bg_btn = ImageTk.PhotoImage(bg_btn1)
 
 #Variavel para tamanho de vonte dos botões gerais
 fontsize = int((screen_height * 1.83) / 100)
+fontsize14 = int((screen_height * 1.30) / 100)
 
 #MARK: TELA INICIAL --------------------------------------------------------------------------------------------------------------
 
