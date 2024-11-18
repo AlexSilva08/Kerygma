@@ -586,10 +586,19 @@ canvas_grafico_leitura.place(relx=0.5, rely=0.5, anchor="center")  # Centralizad
 canvasMatplot2 = FigureCanvasTkAgg(fig2, master = canvas_grafico_leitura)
 canvasMatplot2.get_tk_widget().pack()
 
+vdcp_label = Label(canvas_velocidade, text="Velocidade do Centro de Pressão", font=("Helvetica", 16), fg="#24344D", bg= "#EBEBEB")
+vdcp_label.place(relx=0.5, rely=0.3, anchor="center")
+
+dx_label = Label(canvas_velocidade, text="DX", font=("Helvetica", 16), fg="#24344D", bg= "#EBEBEB")
+dx_label.place(relx=0.5, rely=0.5, anchor="center")
+
+dy_label = Label(canvas_velocidade, text="DY", font=("Helvetica", 16), fg="#24344D", bg= "#EBEBEB")
+dy_label.place(relx=0.5, rely=0.7, anchor="center")
+
 #MARK: Ler Arquivo() --------------------------------------------------------------------------------------------------------------------------------------
 
 def LerArquivo():
-    print("Rodou")
+    print("Método para ler o arquivo")
 
     filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
     Dados = pd.read_excel(filename)
@@ -617,6 +626,15 @@ def LerArquivo():
         Dt = Dt + d
 
         n = n + 1
+
+    V=Dt/Dados["Tempo"].iloc[-1]
+    vdcp_label.config(text="Velocidade do Centro de Pressão: " + str(round(V,2)))
+
+    Dx = (Dados.CPX.max()) - (Dados.CPX.min())
+    dx_label.config(text="DX: " + str(round(Dx,2)))
+
+    Dy = (Dados.CPY.max()) - (Dados.CPY.min())
+    dy_label.config(text="DY: " + str(round(Dy,2)))
 
     show_frame(tela_resultado)
 
@@ -649,9 +667,9 @@ canvas_emg.place(relx=0.4688, rely=0.213, anchor='nw')
 
 
 #Texto
-canvas_centro_pressao.create_text(395, 100, text="Centro de Pressão", font=("Arial", 20, "bold"), fill="#000000")
+#canvas_centro_pressao.create_text(395, 100, text="Centro de Pressão", font=("Arial", 20, "bold"), fill="#000000")
 canvas_distr_massas.create_text(395, 100, text="Distribuição de Massa", font=("Arial", 20, "bold"), fill="#000000")
-canvas_velocidade.create_text(395, 100, text="Velocidade", font=("Arial", 20, "bold"), fill="#000000")
+#canvas_velocidade.create_text(395, 100, text="Velocidade", font=("Arial", 20, "bold"), fill="#000000")
 canvas_emg.create_text(395, 100, text="EMG", font=("Arial", 20, "bold"), fill="#000000")
 
 
