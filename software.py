@@ -426,9 +426,9 @@ def oscilacao():
 
 rotina = ctk.CTkScrollableFrame(
     tela_parametros,
-    width=250,
-    height=100,
-    corner_radius = 9,
+    width=(screen_width * 20.5 /100),
+    height=(screen_height *41/100),
+    corner_radius = 15,
     fg_color="#E0E7EC",
     orientation = "vertical",
     label_text = "Rotina de Movimentação",
