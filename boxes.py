@@ -4,24 +4,30 @@ from tkinter import PhotoImage
 from PIL import Image, ImageTk 
 import customtkinter as ctk
 
+
 ############################################################################  SPIN BOX
 entrada = []
 
 # Spinbox customizada
 class CustomSpinbox(ctk.CTkFrame):
-    def __init__(self, master, min_value=0, max_value=100, **kwargs):
+    def __init__(self, master, min_value, max_value, step=1, screen_width = 1920, screen_height = 1080, **kwargs):
         super().__init__(master,fg_color="#0b2243", border_width=0, **kwargs)
         
+
         # Atributos da Spinbox
         self.min_value = min_value
         self.max_value = max_value
+        self.step = step
+        self.screen_width = screen_width
+        self.screen_height = screen_height
         self.current_value = IntVar(value=min_value)
         
+        fontsize = int((self.screen_height * 1.4) / 100)
+
         # Personalizações
         self.btn_color = "#0b2243"               # Cor de fundo dos botões
         self.btn_text_color = "#e0e0e0"           # Cor do texto dos botões
-        self.entry_width = 50                  # Largura do campo de entrada
-        self.font = ("Intern", 14, "bold")       # Fonte e estilo do texto
+        self.font = ("Intern", fontsize, "bold")       # Fonte e estilo do texto
         self.border_color="#a7bbcb"                 # Cor da borda
         self._border_width=0                        # Tamanho da borda
         self.btn_hover_color = "#304462"            # Hover do botão
@@ -31,14 +37,14 @@ class CustomSpinbox(ctk.CTkFrame):
         
         # Botão para diminuir o valor
         self.decrement_button = ctk.CTkButton(
-            self, text="-", width =28, fg_color=self.btn_color, 
+            self, text="-", width=int(self.screen_width * 2/100),height= (screen_height * 3 /100), fg_color=self.btn_color, 
             text_color=self.btn_text_color, font=self.font, hover_color=self.btn_hover_color,
             command=self.decrement)
         self.decrement_button.grid(row=0, column=0, padx=2, pady=5)
         
         # Entrada para mostrar e editar o valor
         self.entry = ctk.CTkEntry(
-            self, textvariable=self.current_value, width=self.entry_width,
+            self, textvariable=self.current_value, width=(self.screen_width * 3/100), height= (screen_height * 3.5 /100),
             font=self.font, justify="center", border_color=self.border_color, border_width=self._border_width)
         self.entry.grid(row=0, column=1, padx=2, pady=5)
         self.entry.bind("<FocusOut>", self.validate_value)
@@ -46,7 +52,7 @@ class CustomSpinbox(ctk.CTkFrame):
 
         # Botão para aumentar o valor
         self.increment_button = ctk.CTkButton(
-            self, text="+", width=28, fg_color=self.btn_color, 
+            self, text="+", width=int(self.screen_width * 2/100), height= (screen_height * 3 /100), fg_color=self.btn_color, 
             text_color=self.btn_text_color, font=self.font, hover_color=self.btn_hover_color,
             command=self.increment)
         self.increment_button.grid(row=0, column=2, padx=2, pady=5)
@@ -54,7 +60,7 @@ class CustomSpinbox(ctk.CTkFrame):
     def increment(self):
         value = self.current_value.get()
         if value < self.max_value:
-            self.current_value.set(value + 1)
+            self.current_value.set(value + self.step)
             if value < self.min_value:
                 self.current_value.set(self.min_value)
         if value > self.max_value:
@@ -63,7 +69,7 @@ class CustomSpinbox(ctk.CTkFrame):
     def decrement(self):
         value = self.current_value.get()
         if value > self.min_value:
-            self.current_value.set(value - 1)
+            self.current_value.set(value - self.step)
             if value > self.max_value:
                 self.current_value.set(self.max_value)
         if value < self.min_value:
@@ -84,7 +90,8 @@ class CustomSpinbox(ctk.CTkFrame):
 
 class CustomComboBox:
     def __init__(self, master, values, width, height, font, button_color, dropdown_fg_color, dropdown_text_color, bg_color,
-                img_seta, text_color, button_hover_color, dropdown_hover_color,border_color, border_width, corner_radius):
+                 img_seta, text_color, button_hover_color, dropdown_hover_color,border_color, border_width, corner_radius):
+        
         self.master = master
         self.values = values
         self.width = width

@@ -88,6 +88,7 @@ bg_btn = ImageTk.PhotoImage(bg_btn1)
 
 #Variavel para tamanho de vonte dos botões gerais
 fontsize = int((screen_height * 1.83) / 100)
+
 fontsize14 = int((screen_height * 1.30) / 100)
 
 #MARK: TELA INICIAL --------------------------------------------------------------------------------------------------------------
@@ -305,7 +306,7 @@ moldura2 = Image.open("UI/Parametros/moldura_02.png")
 moldura2 = moldura2.resize((width_molduras, height_moldura02), Image.LANCZOS)
 moldura02 = ImageTk.PhotoImage(moldura2)
 
-###### CANVAS MOVIMENTAÇÃO
+#MARK: CANVAS MOVIMENTAÇÃO -------------------------
 canvas_movimentacao = Canvas(
     tela_parametros,
     width = (screen_width * 58.08)/100,
@@ -331,7 +332,7 @@ canvas_oscilacao.place(relx=0.3453,rely=0.3491,anchor="nw")
 def movimentacao_oscilacao(canvas):
     canvas_movimentacao.place_forget()
     canvas_oscilacao.place_forget()
-
+    
     #Exibe o canvas selecionado
     canvas.place(relx=0.3453,rely=0.3491,anchor="nw")
 
@@ -341,89 +342,91 @@ def movimentacao_oscilacao(canvas):
         oscilacao()
 
 def movimentacao():
-    canvas_movimentacao.delete("all") 
     label_moldura01 = Label(canvas_movimentacao, image=moldura01, borderwidth=0, bg="#E0E7EC")
     label_moldura01.image = moldura01
-    label_moldura01.place(relx=0.3865, rely= 0.1551, anchor = "nw")
+    label_moldura01.place(relx=0.4664, rely= 0.4494, anchor = "center")
 
     label_moldura02 = Label(canvas_movimentacao, image=moldura02, borderwidth=0, bg="#E0E7EC")
     label_moldura02.image = moldura02
-    label_moldura02.place(relx=0.5857, rely= 0.3371, anchor = "nw")
+    label_moldura02.place(relx=0.6682, rely= 0.4494, anchor = "center")
 
     label_moldura03 = Label(canvas_movimentacao, image=moldura01, borderwidth=0, bg="#E0E7EC")
     label_moldura03.image = moldura01
-    label_moldura03.place(relx=0.7910, rely= 0.1551, anchor = "nw")
+    label_moldura03.place(relx=0.87, rely= 0.4494, anchor = "center")
 
     movimento_label = Label(canvas_movimentacao, text="MOVIMENTO", font=("Inter", 16, "bold"), background="#E0E7EC", fg="#304462")
-    movimento_label.place(relx=0.1220, rely= 0.0854, anchor = "nw")
+    movimento_label.place(relx=0.2, rely= 0.1303, anchor = "center")
 
-    mov_label_i = Label(canvas_movimentacao, text="Tempo Inicial", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
-    mov_tempo_i = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360)
-    mov_label_i.place(relx=0.4099, rely= 0.1810, anchor = "nw")
-    mov_tempo_i.place(relx=0.4, rely= 0.2584, anchor = "nw")
+    mov_label_i = Label(canvas_movimentacao, text="Tempo Inicial", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
+    mov_tempo_i = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360, step = 10)
+    mov_label_i.place(relx=0.4664, rely= 0.2180, anchor = "center")
+    mov_tempo_i.place(relx=0.4664, rely = 0.3146, anchor = "center")
 
-    mov_label_f = Label(canvas_movimentacao, text="Tempo Final", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
-    mov_tempo_f = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360)
-    mov_label_f.place(relx=0.4099, rely= 0.5181, anchor = "nw")
-    mov_tempo_f.place(relx=0.4, rely = 0.5955, anchor = "nw")
+    mov_label_f = Label(canvas_movimentacao, text="Tempo Final", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
+    mov_tempo_f = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360, step= 2)
+    mov_label_f.place(relx=0.4664, rely= 0.5551, anchor = "center")
+    mov_tempo_f.place(relx=0.4664, rely = 0.6472, anchor = "center")
 
-    mov_label_vel = Label(canvas_movimentacao, text="Velocidade", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
-    mov_vel = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360)
-    mov_label_vel.place(relx=0.6163, rely = 0.3720, anchor = "nw")
-    mov_vel.place(relx=0.598, rely = 0.4607, anchor = "nw")
+    mov_label_vel = Label(canvas_movimentacao, text="Velocidade", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
+    mov_vel = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360, step = 5)
+    mov_label_vel.place(relx=0.6682, rely = 0.38, anchor = "center")
+    mov_vel.place(relx=0.6682, rely = 0.48, anchor = "center")
 
-    mov_label_x = Label(canvas_movimentacao, text="Ângulo X", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
-    mov_x = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360)
-    mov_label_x.place(relx=0.8323, rely = 0.1819, anchor = "nw")
-    mov_x.place(relx=0.8045, rely = 0.2584, anchor = "nw")
+    mov_label_x = Label(canvas_movimentacao, text="Ângulo X", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
+    mov_x = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360, step = 1)
+    mov_label_x.place(relx=0.87, rely= 0.2180, anchor = "center")
+    mov_x.place(relx=0.87, rely = 0.3146, anchor = "center")
 
-    mov_label_y = Label(canvas_movimentacao, text="Ângulo Y", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
-    mov_y = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360)
-    mov_label_y.place(relx=0.8323, rely = 0.5181, anchor = "nw")
-    mov_y.place(relx=0.8045, rely = 0.5955, anchor = "nw")
+    mov_label_y = Label(canvas_movimentacao, text="Ângulo Y", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
+    mov_y = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360, step = 1)
+    mov_label_y.place(relx=0.87, rely= 0.5551, anchor = "center")
+    mov_y.place(relx=0.87, rely = 0.6472, anchor = "center")
 
 def oscilacao():
-    canvas_oscilacao.delete("all")
-    canvas_oscilacao.delete("all")  
     label_moldura01 = Label(canvas_oscilacao, image=moldura01, borderwidth=0, bg="#E0E7EC")
     label_moldura01.image = moldura01
-    label_moldura01.place(relx=0.3865, rely= 0.1551, anchor = "nw")
+    label_moldura01.place(relx=0.4664, rely= 0.4494, anchor = "center")
 
     label_moldura02 = Label(canvas_oscilacao, image=moldura01, borderwidth=0, bg="#E0E7EC")
     label_moldura02.image = moldura01
-    label_moldura02.place(relx=0.5857, rely= 0.1551, anchor = "nw")
+    label_moldura02.place(relx=0.6682, rely= 0.4494, anchor = "center")
 
     label_moldura03 = Label(canvas_oscilacao, image=moldura01, borderwidth=0, bg="#E0E7EC")
     label_moldura03.image = moldura01
-    label_moldura03.place(relx=0.7910, rely= 0.1551, anchor = "nw")
+    label_moldura03.place(relx=0.87, rely= 0.4494, anchor = "center")
 
     oscilacao_label = Label(canvas_oscilacao, text="OSCILAÇÃO", font=("Inter", 16, "bold"), background="#E0E7EC", fg="#304462")
-    oscilacao_label.place(relx=0.1220, rely= 0.0854, anchor = "nw")
+    oscilacao_label.place(relx=0.2, rely= 0.1303, anchor = "center")
 
-    osc_label_maxx = Label(canvas_oscilacao, text="Ângulo Max X", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
-    osc_maxx = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360)
-    osc_label_maxx.place(relx=0.4099, rely= 0.1810, anchor = "nw")
-    osc_maxx.place(relx=0.4, rely= 0.2584, anchor = "nw")
+    osc_label_maxx = Label(canvas_oscilacao, text="Ângulo Max X", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
+    osc_maxx = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360, step = 1)
+    osc_label_maxx.place(relx=0.4664, rely= 0.2180, anchor = "center")
+    osc_maxx.place(relx=0.4664, rely = 0.3146, anchor = "center")
 
-    osc_label_minx = Label(canvas_oscilacao, text="Ângulo Min X", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
-    osc_minx = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360)
-    osc_label_minx.place(relx=0.4099, rely= 0.5181, anchor = "nw")
-    osc_minx.place(relx=0.4, rely = 0.5955, anchor = "nw")
+    osc_label_minx = Label(canvas_oscilacao, text="Ângulo Min X", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
+    osc_minx = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360, step = 2)
+    osc_label_minx.place(relx=0.4664, rely= 0.5551, anchor = "center")
+    osc_minx.place(relx=0.4664, rely = 0.6472, anchor = "center")
 
-    osc_label_vel = Label(canvas_oscilacao, text="Velocidade", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
-    osc_vel = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360)
-    osc_label_vel.place(relx=0.6163, rely = 0.3720, anchor = "nw")
-    osc_vel.place(relx=0.598, rely = 0.4607, anchor = "nw")
+    osc_label_vel = Label(canvas_oscilacao, text="Velocidade", font=("Inter",fontsize14, "bold"), background="#E0E7EC", fg="#656565")
+    osc_vel = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360, step = 1)
+    osc_label_vel.place(relx=0.6682, rely= 0.2180, anchor = "center")
+    osc_vel.place(relx=0.6682, rely = 0.3146, anchor = "center")
 
-    osc_label_maxy = Label(canvas_oscilacao, text="Ângulo Max Y", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
-    osc_maxy = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360)
-    osc_label_maxy.place(relx=0.8323, rely = 0.1819, anchor = "nw")
-    osc_maxy.place(relx=0.8045, rely = 0.2584, anchor = "nw")
+    osc_label_rep = Label(canvas_oscilacao, text="Repetições", font=("Inter",fontsize14, "bold"), background="#E0E7EC", fg="#656565")
+    osc_rep = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360, step = 1)
+    osc_label_rep.place(relx=0.6682, rely= 0.5551, anchor = "center")
+    osc_rep.place(relx=0.6682, rely = 0.6472, anchor = "center")
 
-    osc_label_miny = Label(canvas_oscilacao, text="Ângulo Min Y", font=("Inter", 12, "bold"), background="#E0E7EC", fg="#656565")
-    osc_miny = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360)
-    osc_label_miny.place(relx=0.8323, rely = 0.5181, anchor = "nw")
-    osc_miny.place(relx=0.8045, rely = 0.5955, anchor = "nw")
+    osc_label_maxy = Label(canvas_oscilacao, text="Ângulo Max Y", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
+    osc_maxy = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360, step = 1)
+    osc_label_maxy.place(relx=0.87, rely= 0.2180, anchor = "center")
+    osc_maxy.place(relx=0.87, rely = 0.3146, anchor = "center")
+
+    osc_label_miny = Label(canvas_oscilacao, text="Ângulo Min Y", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
+    osc_miny = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360, step = 1)
+    osc_label_miny.place(relx=0.87, rely= 0.5551, anchor = "center")
+    osc_miny.place(relx=0.87, rely = 0.6472, anchor = "center")
 
 rotina = ctk.CTkScrollableFrame(
     tela_parametros,
@@ -431,11 +434,7 @@ rotina = ctk.CTkScrollableFrame(
     height=(screen_height *41/100),
     corner_radius = 15,
     fg_color="#E0E7EC",
-    orientation = "vertical",
-    label_text = "Rotina de Movimentação",
-    label_font = ("Inter", fontsize, "bold"),
-    label_fg_color="#304462",
-    label_text_color="#e0e0e0"
+    orientation = "vertical"
     )
 rotina.place(relx=0.0583, rely=0.3481, anchor = "nw")
 
