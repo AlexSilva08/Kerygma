@@ -224,13 +224,31 @@ sexo_paciente = boxes.CustomComboBox(
 sexo_paciente.place(relx=0.7464, rely=0.5463)
 entradas.append(sexo_paciente)
 
+
 # Função para armazenar os dados em uma lista
 dados_paciente_lista = []
+
 def armazenar_dados():
     global dados_paciente_lista
     dados_paciente_lista = [entrada.get() for entrada in entradas]
     for entrada in entradas:
         entrada.delete(0, END)
+
+def CarregarPerfil():
+    filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
+    Dados = pd.read_excel(filename)
+
+    nome_paciente = Dados.Nome[0]
+    idade_paciente = Dados.Idade[0]
+    altura_paciente = Dados.Altura[0]
+    peso_paciente = Dados.Peso[0]
+    sexo_paciente = Dados.Sexo[0]
+    
+    global dados_paciente_lista
+    dados_paciente_lista = [nome_paciente, idade_paciente, altura_paciente, peso_paciente, sexo_paciente]
+
+    show_frame(tela_resultado)
+    exibir_canvas(canvas_paciente)
 
 # Função para exibir os dados salvos na tela de resultado
 def dados_paciente(tela):
@@ -249,7 +267,7 @@ btn_lerArquivo = Button(
     compound="center",
     bd=0,
     activeforeground="#f7c360",
-    command=lambda: dados_paciente(tela_carregamento)
+    command= CarregarPerfil
 )
 btn_lerArquivo.place(relx=0.1042, rely=0.8611)
 
