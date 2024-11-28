@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import PhotoImage
+from tkinter import messagebox
 from PIL import Image, ImageTk 
 import customtkinter as ctk
 import boxes
@@ -768,6 +769,34 @@ def exibir_canvas(canvas):
         btn_emg.configure(fg="#0B2243", image=bg_btn_resultado)
         btn_velocidade.configure(fg="#e0e0e0", image=bg_btn_click)
 
+# Array para armazenar os dados
+dados_salvos = []
+
+#MARK: Função para capturar e salvar os dados no array btn SALVAR
+def salvar_dados():
+    nome = dados_paciente_lista[0]
+    idade = dados_paciente_lista[1]
+    altura = dados_paciente_lista[2]
+    peso = dados_paciente_lista[3]
+    sexo = dados_paciente_lista[4]
+    
+    # Salva os dados no array como um dicionário
+
+    dados = {'Nome': [nome], 'Idade': [idade], 'Altura': [altura], 'Peso': [peso], 'Sexo': [sexo]}
+
+    df = pd.DataFrame(data=dados)
+
+    file_path = filedialog.asksaveasfilename(defaultextension='.xlsx', title="Salvar dados coletados",
+                                                 filetypes=[("Excel files", "*.xlsx")])
+    try:
+        df.to_excel(file_path, engine='openpyxl')
+        messagebox.showinfo(title=None, message="Salvo com sucesso!")
+    except:
+        print("Erro ao salvar")
+
+    #dados_salvos.append(dados)
+
+    show_frame(tela_resultado)
 
 #Background Botões
 width_paciente = int((screen_width * 26.56) / 100)
@@ -881,7 +910,9 @@ btn_salvarFinal = Button(
     height=((screen_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
-    activeforeground="#f7c360")
+    activeforeground="#f7c360",
+    command = salvar_dados
+    )
 btn_salvarFinal.place(relx= 0.1042, rely=0.8611)
 
 btn_voltarInicial = Button(
