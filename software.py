@@ -228,6 +228,7 @@ entradas.append(sexo_paciente)
 
 # Função para armazenar os dados em uma lista
 dados_paciente_lista = []
+dados_velocidade_lista = []
 
 def armazenar_dados():
     global dados_paciente_lista
@@ -235,6 +236,8 @@ def armazenar_dados():
     for entrada in entradas:
         entrada.delete(0, END)
 
+
+#MARK: Carregar perfil
 def CarregarPerfil():
     filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
     Dados = pd.read_excel(filename)
@@ -244,9 +247,15 @@ def CarregarPerfil():
     altura_paciente = Dados.Altura[0]
     peso_paciente = Dados.Peso[0]
     sexo_paciente = Dados.Sexo[0]
+    vdcp = Dados.Velocidade[0]
+    dx = Dados.dx[0]
+    dy = Dados.dy[0]
     
     global dados_paciente_lista
     dados_paciente_lista = [nome_paciente, idade_paciente, altura_paciente, peso_paciente, sexo_paciente]
+
+    global dados_velocidade_lista
+    dados_velocidade_lista = [vdcp, dx, dy]
 
     show_frame(tela_resultado)
     exibir_canvas(canvas_paciente)
@@ -605,14 +614,15 @@ canvas_grafico_leitura.place(relx=0.5, rely=0.5, anchor="center")  # Centralizad
 canvasMatplot2 = FigureCanvasTkAgg(fig2, master = canvas_grafico_leitura)
 canvasMatplot2.get_tk_widget().pack()
 
-vdcp_label = Label(canvas_velocidade, text="Velocidade do Centro de Pressão", font=("Helvetica", 16), fg="#24344D", bg= "#EBEBEB")
-vdcp_label.place(relx=0.5, rely=0.3, anchor="center")
+#vdcp_label = Label(canvas_velocidade, text="Velocidade do Centro de Pressão", font=("Helvetica", 16), fg="#24344D", bg= "#EBEBEB")
+#vdcp_label.place(relx=0.5, rely=0.3, anchor="center")
 
-dx_label = Label(canvas_velocidade, text="DX", font=("Helvetica", 16), fg="#24344D", bg= "#EBEBEB")
-dx_label.place(relx=0.5, rely=0.5, anchor="center")
+#dx_label = Label(canvas_velocidade, text="DX", font=("Helvetica", 16), fg="#24344D", bg= "#EBEBEB")
+#dx_label.place(relx=0.5, rely=0.5, anchor="center")
 
-dy_label = Label(canvas_velocidade, text="DY", font=("Helvetica", 16), fg="#24344D", bg= "#EBEBEB")
-dy_label.place(relx=0.5, rely=0.7, anchor="center")
+#dy_label = Label(canvas_velocidade, text="DY", font=("Helvetica", 16), fg="#24344D", bg= "#EBEBEB")
+#dy_label.place(relx=0.5, rely=0.7, anchor="center")
+
 
 #MARK: Ler Arquivo() --------------------------------------------------------------------------------------------------------------------------------------
 
@@ -646,14 +656,17 @@ def LerArquivo():
 
         n = n + 1
 
-    V=Dt/Dados["Tempo"].iloc[-1]
-    vdcp_label.config(text="Velocidade do Centro de Pressão: " + str(round(V,2)))
+    vdcp = Dt/Dados["Tempo"].iloc[-1]
+    vdcp_label = str(round(vdcp,2))
 
-    Dx = (Dados.CPX.max()) - (Dados.CPX.min())
-    dx_label.config(text="DX: " + str(round(Dx,2)))
+    dx = (Dados.CPX.max()) - (Dados.CPX.min())
+    dx_label = str(round(dx,2))
 
-    Dy = (Dados.CPY.max()) - (Dados.CPY.min())
-    dy_label.config(text="DY: " + str(round(Dy,2)))
+    dy = (Dados.CPY.max()) - (Dados.CPY.min())
+    dy_label = str(round(dy,2))
+
+    global dados_velocidade_lista
+    dados_velocidade_lista = [vdcp_label, dx_label, dy_label]
 
     show_frame(tela_resultado)
 
@@ -701,6 +714,7 @@ bg_btn_click = ImageTk.PhotoImage(bg_btn_click1)
 
 fontsize22 = int((screen_height * 2) / 100)
 
+#MARK: Exibir dados()
 def exibir_dados_paciente():
     canvas_paciente.delete("all")  # Limpa o conteúdo do Canvas antes de exibir novos dados
     
@@ -718,6 +732,19 @@ def exibir_dados_paciente():
                                 text=f"Idade: {idade} anos  |  Altura: {altura}cm  |  Peso: {peso}kg  |  Sexo: {sexo}", font=("Inter", fontsize-1), fill="#656565")
     canvas_paciente.create_text(canvas_width * 0.5, canvas_height * 0.28,
                                 text="_________________________", font=("Inter", fontsize), fill="#A3A3A3", anchor="center")
+
+def exibir_dados_velocidade():
+    canvas_velocidade.delete("all")
+
+    canvas_width = canvas_velocidade.winfo_width()
+    canvas_height = canvas_velocidade.winfo_height()
+
+    vdcp, dx, dy = dados_velocidade_lista
+
+    canvas_velocidade.create_text(canvas_width * 0.5, canvas_height * 0.1, 
+                                text=f"Velocidade do Centro de Pressao: {vdcp}", font=("Inter", fontsize22, "bold"), fill="#304462", anchor = "center")
+    canvas_velocidade.create_text(canvas_width * 0.5, canvas_height * 0.2, 
+                                text=f"DX: {dx}  |  DY: {dy}", font=("Inter", fontsize-1), fill="#656565")
 
 # Função para exibir o canvas correto
 def exibir_canvas(canvas):
@@ -763,6 +790,8 @@ def exibir_canvas(canvas):
         btn_velocidade.configure(fg="#0B2243", image=bg_btn_resultado)
 
     if canvas == canvas_velocidade:
+        exibir_dados_velocidade()
+
         btn_paciente.config(fg="#0B2243", image = bg_btn_paciente)
         btn_centro_pressao.configure(fg="#0B2243", image=bg_btn_resultado)
         btn_distr_massas.configure(fg="#0B2243", image=bg_btn_resultado)
@@ -779,10 +808,14 @@ def salvar_dados():
     altura = dados_paciente_lista[2]
     peso = dados_paciente_lista[3]
     sexo = dados_paciente_lista[4]
+
+    vdcp = dados_velocidade_lista[0]
+    dx = dados_velocidade_lista[1]
+    dy = dados_velocidade_lista[2]
     
     # Salva os dados no array como um dicionário
 
-    dados = {'Nome': [nome], 'Idade': [idade], 'Altura': [altura], 'Peso': [peso], 'Sexo': [sexo]}
+    dados = {'Nome': [nome], 'Idade': [idade], 'Altura': [altura], 'Peso': [peso], 'Sexo': [sexo], "Velocidade": [vdcp], "dx": [dx], "dy": [dy]}
 
     df = pd.DataFrame(data=dados)
 
