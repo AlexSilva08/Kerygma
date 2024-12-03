@@ -334,6 +334,13 @@ moldura2 = Image.open("UI/Parametros/moldura_02.png")
 moldura2 = moldura2.resize((width_molduras, height_moldura02), Image.LANCZOS)
 moldura02 = ImageTk.PhotoImage(moldura2)
 
+#Botão confirmar
+width_bg_conf = int((screen_width * 7.92) / 100)
+height_bg_conf = int((screen_height * 5.5) / 100)
+bg_btn_conf1 = Image.open("UI/Parametros/btn_confirmar.png")
+bg_btn_conf1 = bg_btn1.resize((width_bg_conf, height_bg_conf), Image.Resampling.LANCZOS)
+bg_btn_conf = ImageTk.PhotoImage(bg_btn_conf1)
+
 #MARK: CANVAS MOVIMENTAÇÃO -------------------------
 canvas_movimentacao = Canvas(
     tela_parametros,
@@ -357,19 +364,84 @@ canvas_oscilacao = Canvas(
 )
 canvas_oscilacao.place(relx=0.3453,rely=0.3491,anchor="nw")
 
-def movimentacao_oscilacao(canvas):
-    canvas_movimentacao.place_forget()
-    canvas_oscilacao.place_forget()
-    
-    #Exibe o canvas selecionado
-    canvas.place(relx=0.3453,rely=0.3491,anchor="nw")
+rotina = ctk.CTkScrollableFrame(
+    tela_parametros,
+    width=(screen_width * 20.5/100),
+    height=(screen_height * 41/100),
+    corner_radius = 15,
+    fg_color="#E0E7EC",
+    orientation = "vertical"
+    )
+rotina.place(relx=0.0583, rely=0.3481, anchor = "nw")
 
-    if canvas == canvas_movimentacao:
-        movimentacao()
-    if canvas == canvas_oscilacao:
-        oscilacao()
+def atualizar_canvas(event):
+    selecao = combobox.get()
+    if selecao == "Movimentação":
+        mostrar_movimentacao()
+    elif selecao == "Oscilação":
+        mostrar_oscilacao()
 
-def movimentacao():
+def gerar_widgets(scrollable_frame, num_widgets,var):
+    for i in range(num_widgets):
+        # Criar o Frame para o ComboBox e RadioButton
+        frame01 = ctk.CTkFrame(scrollable_frame,bg_color = "#E0E7EC",fg_color="#E0E7EC")
+        frame01.pack(fill="x", pady = (screen_width * 0.5)/100)
+
+        # RadioButton
+        radio1 = ctk.CTkRadioButton(
+            frame01,
+            width=(screen_width * 1.3)/100,
+            height=(screen_width * 1.3)/100,
+            text="",
+            variable=var,  # Compartilhando a mesma variável
+            value=i + 1,   # Valor único para este botão
+            fg_color="#0b2243",
+            border_color="#A7BBCB",
+            border_width_checked=(screen_width * 0.41)/100,
+        )
+        radio1.pack(side="left", padx=(screen_width * 0.9)/100, pady=(screen_width * 0.4)/100)
+
+        # Combobox
+        opcoes = ["Movimentação", "Oscilação"]
+        global combobox
+        combobox = ctk.CTkComboBox(
+            frame01,
+            values=opcoes,
+            width=(screen_width * 15.63)/100,
+            height=(screen_height * 5.2)/100,
+            font=("Inter", fontsize, "bold"),
+            dropdown_fg_color="#304462",
+            fg_color="#0b2243",
+            dropdown_text_color="#E0E0E0",
+            button_color="#304462",
+            text_color="#E0E0E0",
+            corner_radius=12,
+            border_width=3,
+            border_color="#304462",
+            button_hover_color="#0B2243",
+            dropdown_hover_color="#0b2243",
+            command= atualizar_canvas
+        )
+        combobox.set("Selecione uma opção")
+        combobox.pack(side="right", padx=(screen_width * 0.9)/100, pady=(screen_width * 0.4)/100)
+
+var = ctk.IntVar()
+gerar_widgets(rotina,10, var)
+
+def radio_button():
+    atualizar_canvas()
+
+def mostrar_movimentacao():
+    canvas_movimentacao.place(relx=0.3453,rely=0.3491,anchor="nw")  # Exibe o canvas de movimentação
+    canvas_oscilacao.place_forget()  # Oculta o canvas de oscilação
+    configurar_canvas_movimentacao()  # Adiciona elementos ao canvas de movimentação
+
+def mostrar_oscilacao():
+    canvas_oscilacao.place(relx=0.3453,rely=0.3491,anchor="nw")  # Exibe o canvas de oscilação
+    canvas_movimentacao.place_forget()  # Oculta o canvas de movimentação
+    configurar_canvas_oscilacao()  # Adiciona elementos ao canvas de oscilação
+
+def configurar_canvas_movimentacao():
     label_moldura01 = Label(canvas_movimentacao, image=moldura01, borderwidth=0, bg="#E0E7EC")
     label_moldura01.image = moldura01
     label_moldura01.place(relx=0.4664, rely= 0.4494, anchor = "center")
@@ -410,7 +482,21 @@ def movimentacao():
     mov_label_y.place(relx=0.87, rely= 0.5551, anchor = "center")
     mov_y.place(relx=0.87, rely = 0.6472, anchor = "center")
 
-def oscilacao():
+    btn_confirmar_mov = Button(
+    canvas_movimentacao,
+    text="CONFIRMAR",
+    font=("Inter", fontsize14+2,"bold"),
+    fg="#E0E0E0",
+    image=bg_btn_conf,
+    width=((screen_width * 7.92) / 100)-2,
+    height=((screen_height * 5.5) / 100)-2,
+    compound="center",
+    bd=0,
+    activeforeground="#f7c360", 
+    )
+    btn_confirmar_mov.place(relx=0.6655, rely=0.8854, anchor='center')
+
+def configurar_canvas_oscilacao():
     label_moldura01 = Label(canvas_oscilacao, image=moldura01, borderwidth=0, bg="#E0E7EC")
     label_moldura01.image = moldura01
     label_moldura01.place(relx=0.4664, rely= 0.4494, anchor = "center")
@@ -456,40 +542,19 @@ def oscilacao():
     osc_label_miny.place(relx=0.87, rely= 0.5551, anchor = "center")
     osc_miny.place(relx=0.87, rely = 0.6472, anchor = "center")
 
-rotina = ctk.CTkScrollableFrame(
-    tela_parametros,
-    width=(screen_width * 20.5 /100),
-    height=(screen_height *41/100),
-    corner_radius = 15,
-    fg_color="#E0E7EC",
-    orientation = "vertical"
+    btn_confirmar_osc = Button(
+    canvas_oscilacao,
+    text="CONFIRMAR",
+    font=("Inter", fontsize14+2,"bold"),
+    fg="#E0E0E0",
+    image=bg_btn_conf,
+    width=((screen_width * 7.92) / 100)-2,
+    height=((screen_height * 5.5) / 100)-2,
+    compound="center",
+    bd=0,
+    activeforeground="#f7c360", 
     )
-rotina.place(relx=0.0583, rely=0.3481, anchor = "nw")
-
-
-for i in range (2):
-    if i == 1:
-        Button(rotina, text="Movimentação",
-        font=("Inter", fontsize,"bold"),
-        fg="#E0E0E0",
-        image=bg_btn,
-        width=((screen_width * 9.9) / 100)-2,
-        height=((screen_height * 9.26) / 100)-2,
-        compound="center",
-        bd=0,
-        activeforeground="#f7c360",
-        command=lambda: movimentacao_oscilacao(canvas_movimentacao)).pack()
-    else:
-        Button(rotina, text="Oscilação",
-        font=("Inter", fontsize,"bold"),
-        fg="#E0E0E0",
-        image=bg_btn,
-        width=((screen_width * 9.9) / 100)-2,
-        height=((screen_height * 9.26) / 100)-2,
-        compound="center",
-        bd=0,
-        activeforeground="#f7c360",
-        command=lambda: movimentacao_oscilacao(canvas_oscilacao)).pack()
+    btn_confirmar_osc.place(relx=0.6655, rely=0.8854, anchor='center')
 
 btn_presets = Button(
     tela_parametros,
