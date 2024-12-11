@@ -5,6 +5,9 @@ from PIL import Image, ImageTk
 import customtkinter as ctk
 import boxes
 import serial
+import time
+import glob
+import subprocess
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.figure
@@ -374,17 +377,28 @@ rotina = ctk.CTkScrollableFrame(
     )
 rotina.place(relx=0.0583, rely=0.3481, anchor = "nw")
 
-def atualizar_canvas(event):
-    selecao = combobox.get()
-    if selecao == "Movimentação":
-        mostrar_movimentacao()
-    elif selecao == "Oscilação":
-        mostrar_oscilacao()
+
+matriz_parametros = []
+combobox_criada = []
+global index_radio
+global index_combo
+index_radio = 0
+index_combo = 0
+
+
+#for criando e inicializando um array dentro de um array (matriz) com valores zerados
+for i in range (5):
+    row = []
+    for j in range (7):
+        row.append(0)
+    matriz_parametros.append(row)
+        
+var = ctk.IntVar()
 
 def gerar_widgets(scrollable_frame, num_widgets,var):
     for i in range(num_widgets):
         # Criar o Frame para o ComboBox e RadioButton
-        frame01 = ctk.CTkFrame(scrollable_frame,bg_color = "#E0E7EC",fg_color="#E0E7EC")
+        frame01 = ctk.CTkFrame(scrollable_frame,bg_color = "#E0E7EC",fg_color="#FFFFFF")
         frame01.pack(fill="x", pady = (screen_width * 0.5)/100)
 
         # RadioButton
@@ -398,6 +412,7 @@ def gerar_widgets(scrollable_frame, num_widgets,var):
             fg_color="#0b2243",
             border_color="#A7BBCB",
             border_width_checked=(screen_width * 0.41)/100,
+            command=lambda v = i: radio_button(v)
         )
         radio1.pack(side="left", padx=(screen_width * 0.9)/100, pady=(screen_width * 0.4)/100)
 
@@ -407,8 +422,8 @@ def gerar_widgets(scrollable_frame, num_widgets,var):
         combobox = ctk.CTkComboBox(
             frame01,
             values=opcoes,
-            width=(screen_width * 15.63)/100,
-            height=(screen_height * 5.2)/100,
+            width=(screen_width * 15.63) / 100,
+            height=(screen_height * 5.2) / 100,
             font=("Inter", fontsize, "bold"),
             dropdown_fg_color="#304462",
             fg_color="#0b2243",
@@ -420,16 +435,47 @@ def gerar_widgets(scrollable_frame, num_widgets,var):
             border_color="#304462",
             button_hover_color="#0B2243",
             dropdown_hover_color="#0b2243",
-            command= atualizar_canvas
+            command=lambda line, v=i: combo_box(line, v),  # Passa o valor atual de `i`
         )
         combobox.set("Selecione uma opção")
+        combobox.configure(state="disabled") 
         combobox.pack(side="right", padx=(screen_width * 0.9)/100, pady=(screen_width * 0.4)/100)
+        combobox_criada.append(combobox)
 
-var = ctk.IntVar()
-gerar_widgets(rotina,10, var)
+#Essa função só chama se o raio botão relacionado está clicado - Criar verificação se o index selecionado do radio é o mesmo da combobox
+def combo_box(line, idx):
+    global index_combo
+    index_combo = idx
+    print(index_combo, line)
+    if line == "Movimentação":
+        mostrar_movimentacao()
+    elif line == "Oscilação":
+        mostrar_oscilacao()
 
-def radio_button():
-    atualizar_canvas()
+def radio_button(value):
+    global index_radio
+    index_radio = value  # Atualiza o índice do radio selecionado
+    print(f"Radio selecionado: {index_radio}")
+
+    canvas_movimentacao.place_forget()
+    canvas_oscilacao.place_forget()
+
+    # Desativar todas as comboboxes
+    for combobox in combobox_criada:
+        combobox.configure(state="disabled")
+
+    # Ativar apenas a combobox correspondente ao índice do radio
+    if 0 <= index_radio < len(combobox_criada):
+        combobox_criada[index_radio].configure(state="normal")
+
+    # Restaurar valores se já existem na matriz
+    if combobox_criada[index_radio].get() == "Movimentação":
+        mostrar_movimentacao()
+    elif combobox_criada[index_radio].get() == "Oscilação":
+        mostrar_oscilacao()
+    
+gerar_widgets(rotina, 5, var)
+
 
 def mostrar_movimentacao():
     canvas_movimentacao.place(relx=0.3453,rely=0.3491,anchor="nw")  # Exibe o canvas de movimentação
@@ -457,30 +503,78 @@ def configurar_canvas_movimentacao():
     movimento_label = Label(canvas_movimentacao, text="MOVIMENTO", font=("Inter", 16, "bold"), background="#E0E7EC", fg="#304462")
     movimento_label.place(relx=0.2, rely= 0.1303, anchor = "center")
 
+    matriz_parametros[index_radio][0] = "M"
+
     mov_label_i = Label(canvas_movimentacao, text="Tempo Inicial", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
-    mov_tempo_i = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360, step = 10)
+    mov_tempo_i = boxes.CustomSpinbox(
+        canvas_movimentacao,
+        min_value=0,
+        max_value=9999,
+        step=1,
+        new_value=matriz_parametros[index_radio][1] if matriz_parametros[index_radio][1] != 0 else 0
+    )
     mov_label_i.place(relx=0.4664, rely= 0.2180, anchor = "center")
     mov_tempo_i.place(relx=0.4664, rely = 0.3146, anchor = "center")
 
     mov_label_f = Label(canvas_movimentacao, text="Tempo Final", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
-    mov_tempo_f = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360, step= 2)
+    mov_tempo_f = boxes.CustomSpinbox(
+        canvas_movimentacao,
+        min_value=0,
+        max_value=9999,
+        step=1,
+        new_value=matriz_parametros[index_radio][2] if matriz_parametros[index_radio][2] != 0 else 0
+    )
     mov_label_f.place(relx=0.4664, rely= 0.5551, anchor = "center")
     mov_tempo_f.place(relx=0.4664, rely = 0.6472, anchor = "center")
 
     mov_label_vel = Label(canvas_movimentacao, text="Velocidade", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
-    mov_vel = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360, step = 5)
+    mov_vel = boxes.CustomSpinbox(
+        canvas_movimentacao,
+        min_value=1,
+        max_value=15,
+        step=1,
+        new_value=matriz_parametros[index_radio][3] if matriz_parametros[index_radio][3] != 0 else 1
+    )
     mov_label_vel.place(relx=0.6682, rely = 0.38, anchor = "center")
     mov_vel.place(relx=0.6682, rely = 0.48, anchor = "center")
 
     mov_label_x = Label(canvas_movimentacao, text="Ângulo X", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
-    mov_x = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360, step = 1)
+    mov_x = boxes.CustomSpinbox(
+        canvas_movimentacao,
+        min_value=-25,
+        max_value=25,
+        step=1,
+        new_value=matriz_parametros[index_radio][4] if matriz_parametros[index_radio][4] != 0 else -25
+    )
     mov_label_x.place(relx=0.87, rely= 0.2180, anchor = "center")
     mov_x.place(relx=0.87, rely = 0.3146, anchor = "center")
 
     mov_label_y = Label(canvas_movimentacao, text="Ângulo Y", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
-    mov_y = boxes.CustomSpinbox(canvas_movimentacao, min_value=90, max_value=360, step = 1)
+    mov_y = boxes.CustomSpinbox(
+        canvas_movimentacao,
+        min_value=-25,
+        max_value=25,
+        step=1,
+        new_value=matriz_parametros[index_radio][5] if matriz_parametros[index_radio][5] != 0 else -25
+    )
     mov_label_y.place(relx=0.87, rely= 0.5551, anchor = "center")
     mov_y.place(relx=0.87, rely = 0.6472, anchor = "center")
+
+    matriz_parametros[index_radio][6] = 0
+
+    def confirmar_mov():
+        valores = [
+            mov_tempo_i.current_value.get(),  # Tempo inicial
+            mov_tempo_f.current_value.get(),  # Tempo final
+            mov_vel.current_value.get(),      # Velocidade
+            mov_x.current_value.get(),        # Ângulo X
+            mov_y.current_value.get(),        # Ângulo Y
+    ]
+    
+        for j, valor in enumerate(valores):
+            matriz_parametros[index_radio][j+1] = valor
+
+        print(f"Matriz atualizada: {matriz_parametros}")
 
     btn_confirmar_mov = Button(
     canvas_movimentacao,
@@ -492,9 +586,12 @@ def configurar_canvas_movimentacao():
     height=((screen_height * 5.5) / 100)-2,
     compound="center",
     bd=0,
-    activeforeground="#f7c360", 
+    activeforeground="#f7c360",
+    command= confirmar_mov
+    #comando do botão precisa ter o get e o .append(matriz_parametros[index_selecionado][posição])
     )
     btn_confirmar_mov.place(relx=0.6655, rely=0.8854, anchor='center')
+
 
 def configurar_canvas_oscilacao():
     label_moldura01 = Label(canvas_oscilacao, image=moldura01, borderwidth=0, bg="#E0E7EC")
@@ -512,37 +609,77 @@ def configurar_canvas_oscilacao():
     oscilacao_label = Label(canvas_oscilacao, text="OSCILAÇÃO", font=("Inter", 16, "bold"), background="#E0E7EC", fg="#304462")
     oscilacao_label.place(relx=0.2, rely= 0.1303, anchor = "center")
 
+    matriz_parametros[index_radio][0] = "O"
     osc_label_maxx = Label(canvas_oscilacao, text="Ângulo Max X", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
-    osc_maxx = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360, step = 1)
+    osc_maxx = boxes.CustomSpinbox(canvas_oscilacao,
+        min_value=-25,
+        max_value=25,
+        step=1,
+        new_value=matriz_parametros[index_radio][1] if matriz_parametros[index_radio][1] != 0 else -25)
     osc_label_maxx.place(relx=0.4664, rely= 0.2180, anchor = "center")
     osc_maxx.place(relx=0.4664, rely = 0.3146, anchor = "center")
 
     osc_label_minx = Label(canvas_oscilacao, text="Ângulo Min X", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
-    osc_minx = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360, step = 2)
+    osc_minx = boxes.CustomSpinbox(canvas_oscilacao,
+        min_value=-25,
+        max_value=25,
+        step=1,
+        new_value=matriz_parametros[index_radio][2] if matriz_parametros[index_radio][2] != 0 else -25)
     osc_label_minx.place(relx=0.4664, rely= 0.5551, anchor = "center")
     osc_minx.place(relx=0.4664, rely = 0.6472, anchor = "center")
 
     osc_label_vel = Label(canvas_oscilacao, text="Velocidade", font=("Inter",fontsize14, "bold"), background="#E0E7EC", fg="#656565")
-    osc_vel = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360, step = 1)
+    osc_vel = boxes.CustomSpinbox(canvas_oscilacao,
+        min_value=1,
+        max_value=15,
+        step=1,
+        new_value=matriz_parametros[index_radio][3] if matriz_parametros[index_radio][3] != 0 else 1)
     osc_label_vel.place(relx=0.6682, rely= 0.2180, anchor = "center")
     osc_vel.place(relx=0.6682, rely = 0.3146, anchor = "center")
 
     osc_label_rep = Label(canvas_oscilacao, text="Repetições", font=("Inter",fontsize14, "bold"), background="#E0E7EC", fg="#656565")
-    osc_rep = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360, step = 1)
+    osc_rep = boxes.CustomSpinbox(canvas_oscilacao,
+        min_value=1,
+        max_value=9999,
+        step=1,
+        new_value=matriz_parametros[index_radio][4] if matriz_parametros[index_radio][4] != 0 else 1)
     osc_label_rep.place(relx=0.6682, rely= 0.5551, anchor = "center")
     osc_rep.place(relx=0.6682, rely = 0.6472, anchor = "center")
 
     osc_label_maxy = Label(canvas_oscilacao, text="Ângulo Max Y", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
-    osc_maxy = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360, step = 1)
+    osc_maxy = boxes.CustomSpinbox(canvas_oscilacao,
+        min_value=-25,
+        max_value=25,
+        step=1,
+        new_value=matriz_parametros[index_radio][5] if matriz_parametros[index_radio][5] != 0 else -25)
     osc_label_maxy.place(relx=0.87, rely= 0.2180, anchor = "center")
     osc_maxy.place(relx=0.87, rely = 0.3146, anchor = "center")
 
     osc_label_miny = Label(canvas_oscilacao, text="Ângulo Min Y", font=("Inter", fontsize14, "bold"), background="#E0E7EC", fg="#656565")
-    osc_miny = boxes.CustomSpinbox(canvas_oscilacao, min_value=90, max_value=360, step = 1)
+    osc_miny = boxes.CustomSpinbox(canvas_oscilacao,
+        min_value=-25,
+        max_value=25,
+        step=1,
+        new_value=matriz_parametros[index_radio][6] if matriz_parametros[index_radio][6] != 0 else -25)
     osc_label_miny.place(relx=0.87, rely= 0.5551, anchor = "center")
     osc_miny.place(relx=0.87, rely = 0.6472, anchor = "center")
 
-    btn_confirmar_osc = Button(
+    def confirmar_osc():
+        valores = [
+            osc_maxx.current_value.get(),  # Max X
+            osc_minx.current_value.get(),  # Min X
+            osc_vel.current_value.get(),   # Velocidade
+            osc_rep.current_value.get(),   # Repetição
+            osc_maxy.current_value.get(),  # Max Y
+            osc_miny.current_value.get(),  # Min Y
+    ]
+    
+        for j, valor in enumerate(valores):
+            matriz_parametros[index_radio][j+1] = valor
+
+        print(f"Matriz atualizada: {matriz_parametros}")
+
+    btn_confirmar_osc= Button(
     canvas_oscilacao,
     text="CONFIRMAR",
     font=("Inter", fontsize14+2,"bold"),
@@ -552,7 +689,9 @@ def configurar_canvas_oscilacao():
     height=((screen_height * 5.5) / 100)-2,
     compound="center",
     bd=0,
-    activeforeground="#f7c360", 
+    activeforeground="#f7c360",
+    command= confirmar_osc
+    #comando do botão precisa ter o get e o .append(matriz_parametros[index_selecionado][posição])
     )
     btn_confirmar_osc.place(relx=0.6655, rely=0.8854, anchor='center')
 
@@ -570,9 +709,116 @@ btn_presets = Button(
 )
 btn_presets.place(relx=0.1042, rely=0.8611)
 
+
+def ManterColeta():
+
+    global PararColeta
+
+    show_frame(tela_carregamento)
+
+    root.after(10, ColetarDados)
+
+
+#MARK: COLETAR DADOS DO TEENSY
+
+def ColetarDados():
+    
+    
+    baud = 9600
+
+    porta1 = "COM10" #Enviar dados para essa porta
+
+    ard1 = serial.Serial(porta1, baud, timeout=0.01, writeTimeout=3) #Enviar dados para essa porta
+
+    os.startfile("Project1\FileName.exe")  #Executa o programa de coleta de dados
+
+    time.sleep(1) #Espera 1 segundo para o programa abrir e se conectar
+
+    ard1.write(str.encode('#andre6')) # Nome do arquivo em que será salvo os dados (precisa ter o # antes)
+    time.sleep(1) # Espera 1 segundo para o arquivo ser criado
+    ard1.write(str.encode('I 0 0 0')) #Inicia a coleta
+
+    Dados_CopX = [0]
+    Dados_CopY = [0]
+    Dados_Tempo = [0]
+
+
+    start = time.time()
+
+    while (time.time() - start) < 2:
+
+        valueRead = ard1.readline()
+
+        valueSplit = valueRead.split(b",")
+
+        print(valueRead)
+
+        if len(valueSplit) == 20:
+
+            P0 = float(valueSplit[12])
+            P1 = float(valueSplit[13])
+            P2 = float(valueSplit[14])
+            P3 = float(valueSplit[15])
+
+            P4 = float(valueSplit[16])
+            P5 = float(valueSplit[17])
+            P6 = float(valueSplit[18])
+            P7 = float(valueSplit[19])
+
+            X = float(valueSplit[1])
+            Y = float(valueSplit[2])
+
+            T = time.time() - start
+
+            DxP0= 16.8
+            DyP0= 16
+            DxP1= 3.4
+            DyP1= 16.5
+            DxP2= 3.4
+            DyP2= 16
+            DxP3= 17
+            DyP3= 16
+
+            DxP4= 3.5
+            DyP4= 16
+            DxP5= 17
+            DyP5= 15.5
+            DxP6= 17
+            DyP6= 16
+            DxP7= 3.8
+            DyP7= 16
+
+            if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
+                CopX = (P4*DxP4 + P5*DxP5 + P6*DxP6 + P7*DxP7 - P0*DxP0 - P1*DxP1 - P2*DxP2 - P3*DxP3)/(P0+P1+P2+P3+P4+P5+P6+P7)
+            else:
+                CopX = 0
+
+            if (P0+P2+P4+P6) > 0:
+                CopY = (P0*DyP0 + P1*DyP1 + P4*DyP4 + P5*DyP5 - P2*DyP2 - P3*DyP3 - P6*DyP6 - P7*DyP7)/(P0+P1+P2+P3+P4+P5+P6+P7)
+            else:
+                CopY = 0
+
+                Dados_CopX.append(CopX)
+                Dados_CopY.append(CopY)
+                Dados_Tempo.append(T)
+
+
+    ard1.write(str.encode('F 0 0 0')) #Interrompe a coleta
+
+
+    time.sleep(1) #Espera 1 segundo para coletar todos os dados
+
+    ard1.close() #Fecha a conexão com o Teensy
+    subprocess.call("taskkill /f /im WindowsTerminal.exe", shell=True) #Fecha programa de coleta
+
+    print(str(Dados_CopX) + " " + str(Dados_CopY) + " " + str(Dados_Tempo))
+
+
+
+
 btn_iniciarCarregamento = Button(
     tela_parametros,
-    text="AVANÇAR",
+    text="COLETAR",
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
@@ -581,14 +827,25 @@ btn_iniciarCarregamento = Button(
     compound="center",
     bd=0,
     activeforeground="#f7c360",
-    command=lambda: show_frame(tela_carregamento)
+    command=lambda: ManterColeta()
 )
 btn_iniciarCarregamento.place(relx=0.7969, rely=0.8611)
+
 
 #MARK: TELA CARREGAMENTO ---------------------------------------------------------------------------------------------------------------------------
 canvas_carregamento = Canvas(tela_carregamento, width=screen_width, height=screen_height)
 canvas_carregamento.grid(row=0, column=0)
 canvas_carregamento.create_image(0, 0, image=bg_carregamento, anchor="nw")
+
+fig2 = matplotlib.figure.Figure()
+ax2 = fig2.add_subplot()
+
+# Canvas Leitura
+canvas_grafico_leitura = Canvas(tela_carregamento, width=890, height=480, bg="white", highlightthickness=4, highlightbackground = "#8ca0b1")
+canvas_grafico_leitura.place(relx=0.5, rely=0.5, anchor="center")  # Centralizado na tela
+
+canvasMatplot2 = FigureCanvasTkAgg(fig2, master = canvas_grafico_leitura)
+canvasMatplot2.get_tk_widget().pack()
 
 btn_parar = Button(
     tela_carregamento,
@@ -738,7 +995,7 @@ def LerArquivo():
 
 btn_avancarResultado = Button(
     tela_carregamento,
-    text="COLETAR\nRESULTADOS",
+    text="RESULTADOS",
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,

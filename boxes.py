@@ -10,7 +10,7 @@ entrada = []
 
 # Spinbox customizada
 class CustomSpinbox(ctk.CTkFrame):
-    def __init__(self, master, min_value, max_value, step=1, screen_width = 1920, screen_height = 1080, **kwargs):
+    def __init__(self, master, min_value, max_value, step=1, screen_width = 1920, screen_height = 1080, new_value = 0, **kwargs):
         super().__init__(master,fg_color="#0b2243", border_width=0, **kwargs)
         
 
@@ -20,7 +20,7 @@ class CustomSpinbox(ctk.CTkFrame):
         self.step = step
         self.screen_width = screen_width
         self.screen_height = screen_height
-        self.current_value = IntVar(value=min_value)
+        self.current_value = IntVar(value=new_value)
         
         fontsize = int((self.screen_height * 1.4) / 100)
 
@@ -31,9 +31,8 @@ class CustomSpinbox(ctk.CTkFrame):
         self.border_color="#a7bbcb"                 # Cor da borda
         self._border_width=0                        # Tamanho da borda
         self.btn_hover_color = "#304462"            # Hover do botão
-
-
         self.columnconfigure((0, 2), weight=1)
+        
         
         # Botão para diminuir o valor
         self.decrement_button = ctk.CTkButton(
@@ -49,6 +48,8 @@ class CustomSpinbox(ctk.CTkFrame):
         self.entry.grid(row=0, column=1, padx=2, pady=5)
         self.entry.bind("<FocusOut>", self.validate_value)
         entrada.append(self.entry)
+        self.validate_value(new_value)
+        
 
         # Botão para aumentar o valor
         self.increment_button = ctk.CTkButton(
@@ -84,7 +85,14 @@ class CustomSpinbox(ctk.CTkFrame):
                 self.current_value.set(self.max_value)
         except ValueError:
             self.current_value.set(self.min_value)  # Volta ao mínimo se valor inválido
-
+       
+        
+    
+    def set(self,new_value, **kwargs):
+        self.current_value=IntVar(value=new_value)
+    
+    def get(self):
+        return self.current_value.get() 
 
 ############################################################################################# COMBO BOX
 
