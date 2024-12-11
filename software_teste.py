@@ -838,7 +838,7 @@ def ColetarDados():
 
         n = n + 1
 
-        V=Dt/Dados["Tempo"].iloc[-1]
+        V=Dt/valueSplit["Tempo"].iloc[-1]
 
 
 btn_iniciarCarregamento = Button(

@@ -20,6 +20,8 @@ import time
 import math
 from tkinter import ttk
 import os
+import csv
+import re
 
 root = ctk.CTk()
 root.title("Nome do Software")
@@ -709,31 +711,43 @@ btn_presets = Button(
 )
 btn_presets.place(relx=0.1042, rely=0.8611)
 
+#MARK: CANVAS CARREGAMENTO ---------------------------------------------------------------------------------------------------------------------------
+canvas_carregamento = Canvas(tela_carregamento, width=screen_width, height=screen_height)
+canvas_carregamento.grid(row=0, column=0)
+canvas_carregamento.create_image(0, 0, image=bg_carregamento, anchor="nw")
 
+fig3 = matplotlib.figure.Figure()
+ax3 = fig3.add_subplot()
+
+# Canvas Leitura
+canvas_grafico_carregamento= Canvas(tela_carregamento, width=890, height=480, bg="white", highlightthickness=4, highlightbackground = "#8ca0b1")
+canvas_grafico_carregamento.place(relx=0.5, rely=0.5, anchor="center")  # Centralizado na tela
+
+canvasMatplot3 = FigureCanvasTkAgg(fig3, master = canvas_grafico_carregamento)
+canvasMatplot3.get_tk_widget().pack()
+
+#MARK: MANTER COLETA()
 def ManterColeta():
 
     global PararColeta
+    global Dados_CopX
+    global Dados_CopY
+    global Dados_Tempo
+    global baud
+    global porta1
+    global ard1
+    global start
+    global loopColeta
 
-    show_frame(tela_carregamento)
-
-    root.after(10, ColetarDados)
-
-
-#MARK: COLETAR DADOS DO TEENSY
-
-def ColetarDados():
-    
-    
+    loopColeta = 1
     baud = 9600
-
+    
     porta1 = "COM10" #Enviar dados para essa porta
-
+    
     ard1 = serial.Serial(porta1, baud, timeout=0.01, writeTimeout=3) #Enviar dados para essa porta
 
     os.startfile("Project1\FileName.exe")  #Executa o programa de coleta de dados
-
     time.sleep(1) #Espera 1 segundo para o programa abrir e se conectar
-
     ard1.write(str.encode('#andre6')) # Nome do arquivo em que será salvo os dados (precisa ter o # antes)
     time.sleep(1) # Espera 1 segundo para o arquivo ser criado
     ard1.write(str.encode('I 0 0 0')) #Inicia a coleta
@@ -743,78 +757,103 @@ def ColetarDados():
     Dados_Tempo = [0]
 
 
+    show_frame(tela_carregamento)
+
     start = time.time()
 
-    while (time.time() - start) < 2:
-
-        valueRead = ard1.readline()
-
-        valueSplit = valueRead.split(b",")
-
-        print(valueRead)
-
-        if len(valueSplit) == 20:
-
-            P0 = float(valueSplit[12])
-            P1 = float(valueSplit[13])
-            P2 = float(valueSplit[14])
-            P3 = float(valueSplit[15])
-
-            P4 = float(valueSplit[16])
-            P5 = float(valueSplit[17])
-            P6 = float(valueSplit[18])
-            P7 = float(valueSplit[19])
-
-            X = float(valueSplit[1])
-            Y = float(valueSplit[2])
-
-            T = time.time() - start
-
-            DxP0= 16.8
-            DyP0= 16
-            DxP1= 3.4
-            DyP1= 16.5
-            DxP2= 3.4
-            DyP2= 16
-            DxP3= 17
-            DyP3= 16
-
-            DxP4= 3.5
-            DyP4= 16
-            DxP5= 17
-            DyP5= 15.5
-            DxP6= 17
-            DyP6= 16
-            DxP7= 3.8
-            DyP7= 16
-
-            if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
-                CopX = (P4*DxP4 + P5*DxP5 + P6*DxP6 + P7*DxP7 - P0*DxP0 - P1*DxP1 - P2*DxP2 - P3*DxP3)/(P0+P1+P2+P3+P4+P5+P6+P7)
-            else:
-                CopX = 0
-
-            if (P0+P2+P4+P6) > 0:
-                CopY = (P0*DyP0 + P1*DyP1 + P4*DyP4 + P5*DyP5 - P2*DyP2 - P3*DyP3 - P6*DyP6 - P7*DyP7)/(P0+P1+P2+P3+P4+P5+P6+P7)
-            else:
-                CopY = 0
-
-                Dados_CopX.append(CopX)
-                Dados_CopY.append(CopY)
-                Dados_Tempo.append(T)
+    root.after(10, ColetarDados)
 
 
-    ard1.write(str.encode('F 0 0 0')) #Interrompe a coleta
+#MARK: COLETAR DADOS DO TEENSY
+
+def ColetarDados():
+    
+    global baud
+    global porta1
+    global ard1
+    global Dados_CopX
+    global Dados_CopY
+    global Dados_Tempo
+    global start
+
+   
+    valueRead = ard1.readline()
+
+    valueSplit = valueRead.split(b",")
+
+    print(valueRead)
+
+    if len(valueSplit) == 20:
+
+        P0 = float(valueSplit[12])
+        P1 = float(valueSplit[13])
+        P2 = float(valueSplit[14])
+        P3 = float(valueSplit[15])
+
+        P4 = float(valueSplit[16])
+        P5 = float(valueSplit[17])
+        P6 = float(valueSplit[18])
+        P7 = float(valueSplit[19])
+
+        X = float(valueSplit[1])
+        Y = float(valueSplit[2])
+
+        T = time.time() - start
+
+        DxP0= 16.8
+        DyP0= 16
+        DxP1= 3.4
+        DyP1= 16.5
+        DxP2= 3.4
+        DyP2= 16
+        DxP3= 17
+        DyP3= 16
+
+        DxP4= 3.5
+        DyP4= 16
+        DxP5= 17
+        DyP5= 15.5
+        DxP6= 17
+        DyP6= 16
+        DxP7= 3.8
+        DyP7= 16
+
+        if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
+            CopX = (P4*DxP4 + P5*DxP5 + P6*DxP6 + P7*DxP7 - P0*DxP0 - P1*DxP1 - P2*DxP2 - P3*DxP3)/(P0+P1+P2+P3+P4+P5+P6+P7)
+        else:
+            CopX = 0
+
+        if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
+            CopY = (P0*DyP0 + P1*DyP1 + P4*DyP4 + P5*DyP5 - P2*DyP2 - P3*DyP3 - P6*DyP6 - P7*DyP7)/(P0+P1+P2+P3+P4+P5+P6+P7)
+        else:
+            CopY = 0
+
+        Dados_CopX.append(CopX)
+        Dados_CopY.append(CopY)
+        Dados_Tempo.append(T)
+
+        ax3.clear() #Limpa o grafico
+
+        lineX = [0, 0, -20, -20, 20, 20, 0]
+        lineY = [20, -20, -20, 20, 20, -20, -20]
+        ax3.plot(lineX, lineY, color='#A7BBCB')
+        ax3.plot(Dados_CopX, Dados_CopY, color='#304462')
+
+        canvasMatplot3.draw() #Desenha o grafico
+
+    if(loopColeta) == 1:
+        root.after(10, ColetarDados)
+    else: 
+        ard1.write(str.encode('F 0 0 0')) #Interrompe a coleta
+        time.sleep(1) #Espera 1 segundo para coletar todos os dados
+
+        ard1.close() #Fecha a conexão com o Teensy
+        subprocess.call("taskkill /f /im WindowsTerminal.exe", shell=True) #Fecha programa de coleta
+
+        print(str(Dados_CopX) + " " + str(Dados_CopY) + " " + str(Dados_Tempo))
 
 
-    time.sleep(1) #Espera 1 segundo para coletar todos os dados
-
-    ard1.close() #Fecha a conexão com o Teensy
-    subprocess.call("taskkill /f /im WindowsTerminal.exe", shell=True) #Fecha programa de coleta
-
-    print(str(Dados_CopX) + " " + str(Dados_CopY) + " " + str(Dados_Tempo))
-
-
-
+#MARK: TELA CARREGAMENTO ---------------------------------------------------------------------------------------------------------------------------
 
 btn_iniciarCarregamento = Button(
     tela_parametros,
@@ -831,21 +870,11 @@ btn_iniciarCarregamento = Button(
 )
 btn_iniciarCarregamento.place(relx=0.7969, rely=0.8611)
 
+def PararColeta():
+    global loopColeta
 
-#MARK: TELA CARREGAMENTO ---------------------------------------------------------------------------------------------------------------------------
-canvas_carregamento = Canvas(tela_carregamento, width=screen_width, height=screen_height)
-canvas_carregamento.grid(row=0, column=0)
-canvas_carregamento.create_image(0, 0, image=bg_carregamento, anchor="nw")
+    loopColeta = 0
 
-fig2 = matplotlib.figure.Figure()
-ax2 = fig2.add_subplot()
-
-# Canvas Leitura
-canvas_grafico_leitura = Canvas(tela_carregamento, width=890, height=480, bg="white", highlightthickness=4, highlightbackground = "#8ca0b1")
-canvas_grafico_leitura.place(relx=0.5, rely=0.5, anchor="center")  # Centralizado na tela
-
-canvasMatplot2 = FigureCanvasTkAgg(fig2, master = canvas_grafico_leitura)
-canvasMatplot2.get_tk_widget().pack()
 
 btn_parar = Button(
     tela_carregamento,
@@ -858,6 +887,7 @@ btn_parar = Button(
     compound="center",
     bd=0,
     activeforeground="#f7c360",
+    command=lambda: PararColeta()
 )
 btn_parar.place(relx=0.1042, rely=0.8611)
 
@@ -951,44 +981,75 @@ canvasMatplot2.get_tk_widget().pack()
 def LerArquivo():
     print("Método para ler o arquivo")
 
-    filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
-    Dados = pd.read_excel(filename)
-
+    Dados_CopX = [0]
+    Dados_CopY = [0]
+    
     ax2.clear() #Limpa o grafico
-    ax2.plot(Dados.CPX,Dados.CPY)
 
-    circle = plt.Circle((0, 0), 20, fill=False)
-    ax2.add_patch(circle)
+    list_of_files = glob.glob('*.tsv') # * means all if need specific format then *.csv
+    latest_file = max(list_of_files, key=os.path.getctime)
+
+    with open(latest_file) as file:
+        Dados = csv.reader(file)
+
+        for row in Dados:
+            #print(row)
+
+            valueSplit = str(row).split(",")
+            #print(valueSplit)
+
+            if len(valueSplit) == 20:
+
+                P0 = float(re.sub("[^0-9]", "", valueSplit[12]))
+                P1 = float(re.sub("[^0-9]", "", valueSplit[13]))
+                P2 = float(re.sub("[^0-9]", "", valueSplit[14]))
+                P3 = float(re.sub("[^0-9]", "", valueSplit[15]))
+
+                P4 = float(re.sub("[^0-9]", "", valueSplit[16]))
+                P5 = float(re.sub("[^0-9]", "", valueSplit[17]))
+                P6 = float(re.sub("[^0-9]", "", valueSplit[18]))
+                P7 = float(re.sub("[^0-9]", "", valueSplit[19]))
+            
+                #print(P7)
+
+                DxP0= 16.8
+                DyP0= 16
+                DxP1= 3.4
+                DyP1= 16.5
+                DxP2= 3.4
+                DyP2= 16
+                DxP3= 17
+                DyP3= 16
+
+                DxP4= 3.5
+                DyP4= 16
+                DxP5= 17
+                DyP5= 15.5
+                DxP6= 17
+                DyP6= 16
+                DxP7= 3.8
+                DyP7= 16
+
+                if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
+                    CopX = (P4*DxP4 + P5*DxP5 + P6*DxP6 + P7*DxP7 - P0*DxP0 - P1*DxP1 - P2*DxP2 - P3*DxP3)/(P0+P1+P2+P3+P4+P5+P6+P7)
+                else:
+                    CopX = 0
+
+                if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
+                    CopY = (P0*DyP0 + P1*DyP1 + P4*DyP4 + P5*DyP5 - P2*DyP2 - P3*DyP3 - P6*DyP6 - P7*DyP7)/(P0+P1+P2+P3+P4+P5+P6+P7)
+                else:
+                    CopY = 0
+
+                Dados_CopX.append(CopX)
+                Dados_CopY.append(CopY)
+
+
+    lineX = [0, 0, -20, -20, 20, 20, 0]
+    lineY = [20, -20, -20, 20, 20, -20, -20]
+    ax2.plot(lineX, lineY, color='#A7BBCB')
+    ax2.plot(Dados_CopX, Dados_CopY, color='#304462')
+
     canvasMatplot2.draw() #Desenha o grafico
-
-    n = 0
-    Dt = 0
-
-    while n < (len(Dados.CPX))-2:
-
-        x1 = Dados.CPX[(n+1)]
-        x2 = Dados.CPX[((n+1) + 1)]
-
-        y1 = Dados.CPY[(n+1)]
-        y2 = Dados.CPY[((n+1) + 1)]
-
-        d= math.sqrt((x1-x2) ** 2+(y1-y2) ** 2)
-
-        Dt = Dt + d
-
-        n = n + 1
-
-    vdcp = Dt/Dados["Tempo"].iloc[-1]
-    vdcp_label = str(round(vdcp,2))
-
-    dx = (Dados.CPX.max()) - (Dados.CPX.min())
-    dx_label = str(round(dx,2))
-
-    dy = (Dados.CPY.max()) - (Dados.CPY.min())
-    dy_label = str(round(dy,2))
-
-    global dados_velocidade_lista
-    dados_velocidade_lista = [vdcp_label, dx_label, dy_label]
 
     show_frame(tela_resultado)
 
