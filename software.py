@@ -247,20 +247,86 @@ def CarregarPerfil():
     filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
     Dados = pd.read_excel(filename)
 
+    Dados_CopX = [0]
+    Dados_CopY = [0]
+
+    num = 0
+
     nome_paciente = Dados.Nome[0]
     idade_paciente = Dados.Idade[0]
     altura_paciente = Dados.Altura[0]
     peso_paciente = Dados.Peso[0]
     sexo_paciente = Dados.Sexo[0]
-    vdcp = Dados.Velocidade[0]
-    dx = Dados.dx[0]
-    dy = Dados.dy[0]
+
+    for index in Dados.iterrows():
+
+        D0 = Dados.D0[num]
+        D1 = Dados.D1[num]
+        D2 = Dados.D2[num]
+        D3 = Dados.D3[num]
+        D4 = Dados.D4[num]
+        D5 = Dados.D5[num]
+        D6 = Dados.D6[num]
+        D7 = Dados.D7[num]
+        D8 = Dados.D8[num]
+        D9 = Dados.D9[num]
+        D10 = Dados.D10[num]
+        D11 = Dados.D11[num]
+        
+        P0 = Dados.D12[num]
+        P1 = Dados.D13[num]
+        P2 = Dados.D14[num]
+        P3 = Dados.D15[num]
+
+        P4 = Dados.D16[num]
+        P5 = Dados.D17[num]
+        P6 = Dados.D18[num]
+        P7 = Dados.D19[num]
+
+        DxP0= 16.8
+        DyP0= 16
+        DxP1= 3.4
+        DyP1= 16.5
+        DxP2= 3.4
+        DyP2= 16
+        DxP3= 17
+        DyP3= 16
+
+        DxP4= 3.5
+        DyP4= 16
+        DxP5= 17
+        DyP5= 15.5
+        DxP6= 17
+        DyP6= 16
+        DxP7= 3.8
+        DyP7= 16
+
+        if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
+            CopX = (P4*DxP4 + P5*DxP5 + P6*DxP6 + P7*DxP7 - P0*DxP0 - P1*DxP1 - P2*DxP2 - P3*DxP3)/(P0+P1+P2+P3+P4+P5+P6+P7)
+        else:
+            CopX = 0
+
+        if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
+            CopY = (P0*DyP0 + P1*DyP1 + P4*DyP4 + P5*DyP5 - P2*DyP2 - P3*DyP3 - P6*DyP6 - P7*DyP7)/(P0+P1+P2+P3+P4+P5+P6+P7)
+        else:
+            CopY = 0
+
+        Dados_CopX.append(CopX)
+        Dados_CopY.append(CopY)
+
+        num = num + 1
+
+    ax2.clear() #Limpa o grafico
+
+    lineX = [0, 0, -20, -20, 20, 20, 0]
+    lineY = [20, -20, -20, 20, 20, -20, -20]
+    ax2.plot(lineX, lineY, color='#A7BBCB')
+    ax2.plot(Dados_CopX, Dados_CopY, color='#304462')
+
+    canvasMatplot2.draw() #Desenha o grafico
     
     global dados_paciente_lista
     dados_paciente_lista = [nome_paciente, idade_paciente, altura_paciente, peso_paciente, sexo_paciente]
-
-    global dados_velocidade_lista
-    dados_velocidade_lista = [vdcp, dx, dy]
 
     show_frame(tela_resultado)
     exibir_canvas(canvas_paciente)
@@ -297,7 +363,7 @@ btn_avancarDados = Button(
     compound="center",
     bd=0,
     activeforeground="#f7c360",
-    command=lambda: show_frame(tela_anamnese)
+    command=lambda: show_frame(tela_parametros)
 )
 btn_avancarDados.place(relx=0.7969, rely=0.8611)
 
@@ -775,7 +841,6 @@ def ColetarDados():
     global Dados_CopY
     global Dados_Tempo
     global start
-
    
     valueRead = ard1.readline()
 
@@ -981,6 +1046,31 @@ canvasMatplot2.get_tk_widget().pack()
 def LerArquivo():
     print("Método para ler o arquivo")
 
+    global D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11
+    global P0, P1, P2, P3, P4, P5, P6, P7
+    global allData0, allData1, allData2, allData3, allData4, allData5, allData6, allData7, allData8, allData9, allData10, allData11, allData12, allData13, allData14, allData15, allData16, allData17, allData18, allData19
+
+    allData0 = [0]
+    allData1 = [0]
+    allData2 = [0]
+    allData3 = [0]
+    allData4 = [0]
+    allData5 = [0]
+    allData6 = [0]
+    allData7 = [0]
+    allData8 = [0]
+    allData9 = [0]
+    allData10 = [0]
+    allData11 = [0]
+    allData12 = [0]
+    allData13 = [0]
+    allData14 = [0]
+    allData15 = [0]
+    allData16 = [0]
+    allData17 = [0]
+    allData18 = [0]
+    allData19 = [0]
+    
     Dados_CopX = [0]
     Dados_CopY = [0]
     
@@ -1000,6 +1090,19 @@ def LerArquivo():
 
             if len(valueSplit) == 20:
 
+                D0 = re.sub("[^A-Z]", "", valueSplit[0])
+                D1 = float(re.sub("[^0-9]", "", valueSplit[1]))
+                D2 = float(re.sub("[^0-9]", "", valueSplit[2]))
+                D3 = float(re.sub("[^0-9]", "", valueSplit[3]))
+                D4 = float(re.sub("[^0-9]", "", valueSplit[4]))
+                D5 = float(re.sub("[^0-9]", "", valueSplit[5]))
+                D6 = float(re.sub("[^0-9]", "", valueSplit[6]))
+                D7 = float(re.sub("[^0-9]", "", valueSplit[7]))
+                D8 = float(re.sub("[^0-9]", "", valueSplit[8]))
+                D9 = float(re.sub("[^0-9]", "", valueSplit[9]))
+                D10 = float(re.sub("[^0-9]", "", valueSplit[10]))
+                D11 = float(re.sub("[^0-9]", "", valueSplit[11]))
+                
                 P0 = float(re.sub("[^0-9]", "", valueSplit[12]))
                 P1 = float(re.sub("[^0-9]", "", valueSplit[13]))
                 P2 = float(re.sub("[^0-9]", "", valueSplit[14]))
@@ -1009,8 +1112,27 @@ def LerArquivo():
                 P5 = float(re.sub("[^0-9]", "", valueSplit[17]))
                 P6 = float(re.sub("[^0-9]", "", valueSplit[18]))
                 P7 = float(re.sub("[^0-9]", "", valueSplit[19]))
-            
-                #print(P7)
+
+                allData0.append(D0)
+                allData1.append(D1)
+                allData2.append(D2)
+                allData3.append(D3)
+                allData4.append(D4)
+                allData5.append(D5)
+                allData6.append(D6)
+                allData7.append(D7)
+                allData8.append(D8)
+                allData9.append(D9)
+                allData10.append(D10)
+                allData11.append(D11)
+                allData12.append(P0)
+                allData13.append(P1)
+                allData14.append(P2)
+                allData15.append(P3)
+                allData16.append(P4)
+                allData17.append(P5)
+                allData18.append(P6)
+                allData19.append(P7)
 
                 DxP0= 16.8
                 DyP0= 16
@@ -1043,7 +1165,6 @@ def LerArquivo():
                 Dados_CopX.append(CopX)
                 Dados_CopY.append(CopY)
 
-
     lineX = [0, 0, -20, -20, 20, 20, 0]
     lineY = [20, -20, -20, 20, 20, -20, -20]
     ax2.plot(lineX, lineY, color='#A7BBCB')
@@ -1051,7 +1172,7 @@ def LerArquivo():
 
     canvasMatplot2.draw() #Desenha o grafico
 
-    show_frame(tela_resultado)
+    salvar_dados()
 
 
 btn_avancarResultado = Button(
@@ -1184,35 +1305,56 @@ def exibir_canvas(canvas):
 # Array para armazenar os dados
 dados_salvos = []
 
-#MARK: Função para capturar e salvar os dados no array btn SALVAR
+#MARK: SALVAR DADOS()
 def salvar_dados():
+    
     nome = dados_paciente_lista[0]
     idade = dados_paciente_lista[1]
     altura = dados_paciente_lista[2]
     peso = dados_paciente_lista[3]
     sexo = dados_paciente_lista[4]
 
-    vdcp = dados_velocidade_lista[0]
-    dx = dados_velocidade_lista[1]
-    dy = dados_velocidade_lista[2]
-    
-    # Salva os dados no array como um dicionário
+    data = {
+        'Nome': nome,
+        'Idade': idade,
+        'Altura': altura,
+        'Peso': peso,
+        'Sexo': sexo,
+        'D0': allData0,
+        'D1': allData1,
+        'D2': allData2,
+        'D3': allData3,
+        'D4': allData4,
+        'D5': allData5,
+        'D6': allData6,
+        'D7': allData7,
+        'D8': allData8,
+        'D9': allData9,
+        'D10': allData10,
+        'D11': allData11,
+        'D12': allData12,
+        'D13': allData13,
+        'D14': allData14,
+        'D15': allData15,
+        'D16': allData16,
+        'D17': allData17,
+        'D18': allData18,
+        'D19': allData19
+    }
 
-    dados = {'Nome': [nome], 'Idade': [idade], 'Altura': [altura], 'Peso': [peso], 'Sexo': [sexo], "Velocidade": [vdcp], "dx": [dx], "dy": [dy]}
-
-    df = pd.DataFrame(data=dados)
+    df = pd.DataFrame(data)
 
     file_path = filedialog.asksaveasfilename(defaultextension='.xlsx', title="Salvar dados coletados",
-                                                 filetypes=[("Excel files", "*.xlsx")])
+                                                filetypes=[("Excel files", "*.xlsx")])
     try:
         df.to_excel(file_path, engine='openpyxl')
         messagebox.showinfo(title=None, message="Salvo com sucesso!")
     except:
         print("Erro ao salvar")
 
-    #dados_salvos.append(dados)
-
     show_frame(tela_resultado)
+    exibir_canvas(canvas_paciente)
+
 
 #Background Botões
 width_paciente = int((screen_width * 26.56) / 100)
@@ -1316,21 +1458,6 @@ def restart(frame):
     canvas_velocidade.delete("all")
     canvas_emg.delete("all")
 
-btn_salvarFinal = Button(
-    tela_resultado,
-    text="SALVAR",
-    font=("Inter", fontsize,"bold"),
-    fg="#E0E0E0",
-    image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
-    compound="center",
-    bd=0,
-    activeforeground="#f7c360",
-    command = salvar_dados
-    )
-btn_salvarFinal.place(relx= 0.1042, rely=0.8611)
-
 btn_voltarInicial = Button(
     tela_resultado,
     text="VOLTAR",
@@ -1343,7 +1470,7 @@ btn_voltarInicial = Button(
     bd=0,
     activeforeground="#f7c360",
     command=lambda: restart(tela_inicial))
-btn_voltarInicial.place(relx= 0.7969, rely=0.8611)
+btn_voltarInicial.place(relx= 0.1042, rely=0.8611)
 
 btn_fechar2 = ctk.CTkButton(
     tela_resultado,
