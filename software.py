@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import *
 from tkinter import PhotoImage
 from tkinter import messagebox
 from PIL import Image, ImageTk 
@@ -22,16 +23,32 @@ from tkinter import ttk
 import os
 import csv
 import re
+import ctypes
+
+
+ctypes.windll.shcore.SetProcessDpiAwareness(2)
+
+# Resolução física e escala de DPI
+user32 = ctypes.windll.user32
+physical_width = user32.GetSystemMetrics(0)
+physical_height = user32.GetSystemMetrics(1)
+
+dpi = ctypes.windll.shcore.GetScaleFactorForDevice(0)
+scale_factor = dpi / 100
 
 root = ctk.CTk()
 root.title("Nome do Software")
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
+screen_width = int(physical_width / scale_factor)
+screen_height = int(physical_height / scale_factor)
 root.geometry(f"{screen_width}x{screen_height}")
 root.minsize(width=1280, height=720)
 root.grid_rowconfigure(0, weight=1)
 root.grid_columnconfigure(0, weight=1)
 root.attributes("-fullscreen", True)
+
+
+print(dpi, scale_factor,physical_height,physical_width)
+print(screen_height, screen_width)
 
 # Criação das telas    
 tela_inicial = Frame(root)
@@ -62,32 +79,32 @@ show_frame(tela_inicial)
 
 #Background Telas
 bg_geral1 = Image.open("UI/background.png")
-bg_geral1 = bg_geral1.resize((screen_width, screen_height), Image.LANCZOS)
+bg_geral1 = bg_geral1.resize((physical_width, physical_height), Image.LANCZOS)
 bg_geral = ImageTk.PhotoImage(bg_geral1)
 
 bg_dados1 = Image.open("UI/bg_dados.png")
-bg_dados1 = bg_dados1.resize((screen_width, screen_height), Image.LANCZOS)
+bg_dados1 = bg_dados1.resize((physical_width, physical_height), Image.LANCZOS)
 bg_dados = ImageTk.PhotoImage(bg_dados1)
 
 bg_anamnese1 = Image.open("UI/bg_anamnese.png")
-bg_anamnese1 = bg_anamnese1.resize((screen_width, screen_height), Image.LANCZOS)
+bg_anamnese1 = bg_anamnese1.resize((physical_width, physical_height), Image.LANCZOS)
 bg_anamnese = ImageTk.PhotoImage(bg_anamnese1)
 
 bg_parametros1 = Image.open("UI/bg_parametros.png")
-bg_parametros1 = bg_parametros1.resize((screen_width, screen_height), Image.LANCZOS)
+bg_parametros1 = bg_parametros1.resize((physical_width, physical_height), Image.LANCZOS)
 bg_parametros = ImageTk.PhotoImage(bg_parametros1)
 
 bg_carregamento1 = Image.open("UI/bg_carregamento.png")
-bg_carregamento1 = bg_carregamento1.resize((screen_width, screen_height), Image.LANCZOS)
+bg_carregamento1 = bg_carregamento1.resize((physical_width, physical_height), Image.LANCZOS)
 bg_carregamento = ImageTk.PhotoImage(bg_carregamento1)
 
 bg_resultado1 = Image.open("UI/Resultado/bg_resultado.png")
-bg_resultado1 = bg_resultado1.resize((screen_width, screen_height), Image.LANCZOS)
+bg_resultado1 = bg_resultado1.resize((physical_width, physical_height), Image.LANCZOS)
 bg_resultado = ImageTk.PhotoImage(bg_resultado1)
 
 #Bg botão geral
-width_bg_btn = int((screen_width * 9.9) / 100)
-height_bg_btn = int((screen_height * 9.26) / 100)
+width_bg_btn = int((physical_width * 9.9) / 100)
+height_bg_btn = int((physical_height * 9.26) / 100)
 bg_btn1 = Image.open("UI/bg_btn.png")
 bg_btn1 = bg_btn1.resize((width_bg_btn, height_bg_btn), Image.Resampling.LANCZOS)
 bg_btn = ImageTk.PhotoImage(bg_btn1)
@@ -99,7 +116,7 @@ fontsize14 = int((screen_height * 1.30) / 100)
 
 #MARK: TELA INICIAL --------------------------------------------------------------------------------------------------------------
 
-canvas_inicial = Canvas(tela_inicial, width=1920, height=1080)
+canvas_inicial = Canvas(tela_inicial, width=physical_width, height=physical_height)
 canvas_inicial.grid(row=0, column=0)
 canvas_inicial.create_image(0, 0, image=bg_geral, anchor="nw")
 
@@ -131,14 +148,6 @@ toogle_button = Button(
 )
 toogle_button.place(relx=0.947, rely=0)
 
-# Título
-canvas_inicial.create_text(
-    640, 50,
-    text="Tela Inicial", 
-    font=('Arial', 24, 'bold'), 
-    fill="#3e567c"
-)
-
 # Configuração de Botões Inicial
 btn_iniciar = Button(
     tela_inicial,
@@ -146,18 +155,18 @@ btn_iniciar = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
     command=lambda: show_frame(tela_dados) 
 )
-btn_iniciar.place(relx=0.5, rely=0.6, anchor='center')
+btn_iniciar.place(relx=0.5, rely=0.8611, anchor='center')
 
 #MARK: TELA DADOS ----------------------------------------------------------------------------------------------------------
 
-canvas_dados = Canvas(tela_dados, width=screen_width, height=screen_height)
+canvas_dados = Canvas(tela_dados, width=physical_width, height=physical_height)
 canvas_dados.grid(row=0, column=0)
 canvas_dados.create_image(0, 0, image=bg_dados, anchor="nw")
 
@@ -167,25 +176,25 @@ entradas = []
 
 nome_label = Label(tela_dados, text="Nome:", font=("Inter", 16, "bold"), background="#D1DCE4", fg="#2F2F2F")
 nome_label.place(relx=0.5531, rely=0.2758)
-nome_paciente = ctk.CTkEntry(tela_dados, width=(screen_width *38.28/100), height=(screen_height * 6.02/100), font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
+nome_paciente = ctk.CTkEntry(tela_dados, width=(screen_width *38.28/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
 nome_paciente.place(relx=0.5458, rely=0.3138)
 entradas.append(nome_paciente)
 
 idade_label = Label(tela_dados, text="Idade:", font=("Inter", 16, "bold"), background="#D1DCE4", fg="#2F2F2F")
 idade_label.place(relx=0.5531, rely=0.398)
-idade_paciente = ctk.CTkEntry(tela_dados, width=(screen_width * 18.23/100), height=(screen_height * 6.02/100), font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
+idade_paciente = ctk.CTkEntry(tela_dados, width=(screen_width * 18.23/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
 idade_paciente.place(relx=0.5458, rely=0.4306)
 entradas.append(idade_paciente)
 
 altura_label = Label(tela_dados, text="Altura:", font=("Inter", 16, "bold"), background="#D1DCE4", fg="#2F2F2F")
 altura_label.place(relx=0.7573, rely=0.398)
-altura_paciente = ctk.CTkEntry(tela_dados, width=(screen_width *18.23/100), height=(screen_height * 6.02/100), font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
+altura_paciente = ctk.CTkEntry(tela_dados, width=(screen_width *18.23/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
 altura_paciente.place(relx=0.7464, rely=0.4306)
 entradas.append(altura_paciente)
 
 peso_label = Label(tela_dados, text="Peso:", font=("Inter", 16, "bold"), background="#D1DCE4", fg="#2F2F2F")
 peso_label.place(relx=0.5531, rely=0.514)
-peso_paciente = ctk.CTkEntry(tela_dados,width=(screen_width *18.23/100), height=(screen_height * 6.02/100), font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
+peso_paciente = ctk.CTkEntry(tela_dados,width=(screen_width *18.23/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
 peso_paciente.place(relx=0.5458, rely=0.5463)
 entradas.append(peso_paciente)
 
@@ -195,8 +204,8 @@ btn_armazenardados = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -343,8 +352,8 @@ btn_lerArquivo = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -358,8 +367,8 @@ btn_avancarDados = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -369,7 +378,7 @@ btn_avancarDados.place(relx=0.7969, rely=0.8611)
 
 #MARK: TELA ANAMNESE --------------------------------------------------------------------------------------------------------
 
-canvas_anamnese = Canvas(tela_anamnese, width=screen_width, height=screen_height)
+canvas_anamnese = Canvas(tela_anamnese, width=physical_width, height=physical_height)
 canvas_anamnese.grid(row=0, column=0)
 canvas_anamnese.create_image(0, 0, image=bg_anamnese, anchor="nw")
 
@@ -379,8 +388,8 @@ btn_avancarAnamnese = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -390,24 +399,24 @@ btn_avancarAnamnese.place(relx=0.7969, rely=0.8611)
 
 #MARK: TELA PARÂMETROS ----------------------------------------------------------------------------------------------------------
 
-canvas_parametros = Canvas(tela_parametros, width=screen_width, height=screen_height)
+canvas_parametros = Canvas(tela_parametros, width=physical_width, height=physical_height)
 canvas_parametros.grid(row=0, column=0)
 canvas_parametros.create_image(0, 0, image=bg_parametros, anchor="nw")
 
-width_molduras = int((screen_width * 10.35)/100)
-height_moldura01 = int((screen_height * 24.5)/100)
+width_molduras = int((physical_width * 10.35)/100)
+height_moldura01 = int((physical_height * 24.5)/100)
 moldura1 = Image.open("UI/Parametros/moldura_01.png")
 moldura1 = moldura1.resize((width_molduras, height_moldura01 ), Image.LANCZOS)
 moldura01 = ImageTk.PhotoImage(moldura1)
 
-height_moldura02 = int((screen_height * 11.5)/100)
+height_moldura02 = int((physical_height * 11.5)/100)
 moldura2 = Image.open("UI/Parametros/moldura_02.png")
 moldura2 = moldura2.resize((width_molduras, height_moldura02), Image.LANCZOS)
 moldura02 = ImageTk.PhotoImage(moldura2)
 
 #Botão confirmar
-width_bg_conf = int((screen_width * 7.92) / 100)
-height_bg_conf = int((screen_height * 5.5) / 100)
+width_bg_conf = int((physical_width * 7.92) / 100)
+height_bg_conf = int((physical_height * 5.5) / 100)
 bg_btn_conf1 = Image.open("UI/Parametros/btn_confirmar.png")
 bg_btn_conf1 = bg_btn1.resize((width_bg_conf, height_bg_conf), Image.Resampling.LANCZOS)
 bg_btn_conf = ImageTk.PhotoImage(bg_btn_conf1)
@@ -415,8 +424,8 @@ bg_btn_conf = ImageTk.PhotoImage(bg_btn_conf1)
 #MARK: CANVAS MOVIMENTAÇÃO -------------------------
 canvas_movimentacao = Canvas(
     tela_parametros,
-    width = (screen_width * 58.08)/100,
-    height = (screen_height * 41.20)/100,
+    width = (physical_width * 58.08)/100,
+    height = (physical_height * 41.20)/100,
     bg="#E0E7EC",
     highlightthickness=0,
     highlightcolor=None,
@@ -426,8 +435,8 @@ canvas_movimentacao.place(relx=0.3453,rely=0.3491,anchor="nw")
 
 canvas_oscilacao = Canvas(
     tela_parametros,
-    width = (screen_width * 58.08)/100,
-    height = (screen_height * 41.20)/100,
+    width = (physical_width * 58.08)/100,
+    height = (physical_height * 41.20)/100,
     bg="#E0E7EC",
     highlightthickness=0,
     highlightcolor=None,
@@ -650,8 +659,8 @@ def configurar_canvas_movimentacao():
     font=("Inter", fontsize14+2,"bold"),
     fg="#E0E0E0",
     image=bg_btn_conf,
-    width=((screen_width * 7.92) / 100)-2,
-    height=((screen_height * 5.5) / 100)-2,
+    width=((physical_width * 7.92) / 100)-2,
+    height=((physical_height * 5.5) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -753,8 +762,8 @@ def configurar_canvas_oscilacao():
     font=("Inter", fontsize14+2,"bold"),
     fg="#E0E0E0",
     image=bg_btn_conf,
-    width=((screen_width * 7.92) / 100)-2,
-    height=((screen_height * 5.5) / 100)-2,
+    width=((physical_width * 7.92) / 100)-2,
+    height=((physical_height * 5.5) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -769,8 +778,8 @@ btn_presets = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -778,7 +787,7 @@ btn_presets = Button(
 btn_presets.place(relx=0.1042, rely=0.8611)
 
 #MARK: CANVAS CARREGAMENTO ---------------------------------------------------------------------------------------------------------------------------
-canvas_carregamento = Canvas(tela_carregamento, width=screen_width, height=screen_height)
+canvas_carregamento = Canvas(tela_carregamento, width=physical_width, height=physical_height)
 canvas_carregamento.grid(row=0, column=0)
 canvas_carregamento.create_image(0, 0, image=bg_carregamento, anchor="nw")
 
@@ -926,8 +935,8 @@ btn_iniciarCarregamento = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -947,8 +956,8 @@ btn_parar = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -960,7 +969,7 @@ btn_parar.place(relx=0.1042, rely=0.8611)
 
 #MARK: TELA RESULTADO -----------------------------------------------------------------------------------------------------------------------------------------
 
-canvas_resultado = Canvas(tela_resultado, width=screen_width, height=screen_height)
+canvas_resultado = Canvas(tela_resultado, width=physical_width, height=physical_height)
 canvas_resultado.grid(row=0, column=0)
 canvas_resultado.create_image(0, 0, image=bg_resultado, anchor="nw")
 
@@ -968,8 +977,8 @@ canvas_resultado.create_image(0, 0, image=bg_resultado, anchor="nw")
 # Canvas Detalhes
 canvas_paciente = Canvas(
     tela_resultado,
-    width=(screen_width * 46)/100,
-    height=(screen_height * 60)/100,
+    width=(physical_width * 46)/100,
+    height=(physical_height * 60)/100,
     bg="#ffffff",
     highlightthickness=6,
     highlightcolor="#A7BBCB",
@@ -977,8 +986,8 @@ canvas_paciente = Canvas(
     )
 canvas_centro_pressao = Canvas(
     tela_resultado, 
-    width=(screen_width * 46)/100, 
-    height=(screen_height * 60)/100, 
+    width=(physical_width * 46)/100, 
+    height=(physical_height * 60)/100, 
     bg="#ffffff",
     highlightthickness=6,
     highlightcolor="#A7BBCB",
@@ -986,8 +995,8 @@ canvas_centro_pressao = Canvas(
     )
 canvas_distr_massas = Canvas(
     tela_resultado,
-    width=(screen_width * 46)/100,
-    height=(screen_height * 60)/100,
+    width=(physical_width * 46)/100,
+    height=(physical_height * 60)/100,
     bg="#ffffff",
     highlightthickness=6,
     highlightcolor="#A7BBCB",
@@ -995,8 +1004,8 @@ canvas_distr_massas = Canvas(
     )
 canvas_velocidade = Canvas(
     tela_resultado,
-    width=(screen_width * 46)/100,
-    height=(screen_height * 60)/100,
+    width=(physical_width * 46)/100,
+    height=(physical_height * 60)/100,
     bg="#ffffff",
     highlightthickness=6,
     highlightcolor="#A7BBCB",
@@ -1004,8 +1013,8 @@ canvas_velocidade = Canvas(
     )
 canvas_emg = Canvas(
     tela_resultado,
-    width=(screen_width * 46)/100,
-    height=(screen_height * 60)/100,
+    width=(physical_width * 46)/100,
+    height=(physical_height * 60)/100,
     bg="#ffffff",
     highlightthickness=6,
     highlightcolor="#A7BBCB",
@@ -1020,8 +1029,8 @@ fig2 = matplotlib.figure.Figure()
 ax2 = fig2.add_subplot()
 
 canvas_grafico_leitura = Canvas(canvas_centro_pressao, 
-    width=(screen_width * 46)/100, 
-    height=(screen_height * 60)/100, 
+    width=(physical_width * 46)/100, 
+    height=(physical_height * 60)/100, 
     bg="#ffffff",
     highlightthickness=6,
     highlightcolor="#A7BBCB",
@@ -1181,8 +1190,8 @@ btn_avancarResultado = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -1210,8 +1219,8 @@ canvas_emg.create_text(395, 100, text="EMG", font=("Arial", 20, "bold"), fill="#
 
 
 #Botão Pressionado
-width_btn_click = int((screen_width * 12.24) / 100)
-height_btn_click = int((screen_height * 17.6) / 100)
+width_btn_click = int((physical_width * 12.24) / 100)
+height_btn_click = int((physical_height * 17.6) / 100)
 bg_btn_click1 = Image.open("UI/Resultado/btn_clicked.png")
 bg_btn_click1 = bg_btn_click1.resize((width_btn_click, height_btn_click), Image.Resampling.LANCZOS)
 bg_btn_click = ImageTk.PhotoImage(bg_btn_click1)
@@ -1357,8 +1366,8 @@ def salvar_dados():
 
 
 #Background Botões
-width_paciente = int((screen_width * 26.56) / 100)
-height_paciente = int((screen_height * 6.48) / 100)
+width_paciente = int((physical_width * 26.56) / 100)
+height_paciente = int((physical_height * 6.48) / 100)
 bg_btn_paciente1 = Image.open("UI/Resultado/btn_paciente_neutro.png")
 bg_btn_paciente1 = bg_btn_paciente1.resize((width_paciente, height_paciente), Image.Resampling.LANCZOS)
 bg_btn_paciente = ImageTk.PhotoImage(bg_btn_paciente1)
@@ -1367,8 +1376,8 @@ bg_btn_paciente_click1 = Image.open("UI/Resultado/btn_paciente_click.png")
 bg_btn_paciente_click1 = bg_btn_paciente_click1.resize((width_paciente, height_paciente), Image.Resampling.LANCZOS)
 bg_btn_paciente_click = ImageTk.PhotoImage(bg_btn_paciente_click1)
 
-width_btn_resultado = int((screen_width * 12.24) / 100)
-height_btn_resultado = int((screen_height * 17.6) / 100)
+width_btn_resultado = int((physical_width * 12.24) / 100)
+height_btn_resultado = int((physical_height * 17.6) / 100)
 bg_btn_resultado1 = Image.open("UI/Resultado/btn_neutro.png")
 bg_btn_resultado1 = bg_btn_resultado1.resize((width_btn_resultado, height_btn_resultado), Image.Resampling.LANCZOS)
 bg_btn_resultado = ImageTk.PhotoImage(bg_btn_resultado1)
@@ -1464,8 +1473,8 @@ btn_voltarInicial = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",

@@ -44,7 +44,7 @@ class CustomSpinbox(ctk.CTkFrame):
         # Entrada para mostrar e editar o valor
         self.entry = ctk.CTkEntry(
             self, textvariable=self.current_value, width=(self.screen_width * 3/100), height= (screen_height * 3.5 /100),
-            font=self.font, justify="center", border_color=self.border_color, border_width=self._border_width)
+            font=self.font, justify="center", border_color=self.border_color, border_width=self._border_width, fg_color="#FFFFFF", text_color="#2F2F2F",)
         self.entry.grid(row=0, column=1, padx=2, pady=5)
         self.entry.bind("<FocusOut>", self.validate_value)
         entrada.append(self.entry)
