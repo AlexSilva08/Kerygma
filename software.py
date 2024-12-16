@@ -148,6 +148,14 @@ toogle_button = Button(
 )
 toogle_button.place(relx=0.947, rely=0)
 
+# Título
+canvas_inicial.create_text(
+    250, 50,
+    text="Tela Inicial", 
+    font=('Arial', 24, 'bold'), 
+    fill="#3e567c"
+)
+
 # Configuração de Botões Inicial
 btn_iniciar = Button(
     tela_inicial,
@@ -266,6 +274,9 @@ def CarregarPerfil():
     altura_paciente = Dados.Altura[0]
     peso_paciente = Dados.Peso[0]
     sexo_paciente = Dados.Sexo[0]
+    vdcp = Dados.Tempo[0]
+    Dx = Dados.Dx[0]
+    Dy = Dados.Dy[0]
 
     for index in Dados.iterrows():
 
@@ -336,6 +347,9 @@ def CarregarPerfil():
     
     global dados_paciente_lista
     dados_paciente_lista = [nome_paciente, idade_paciente, altura_paciente, peso_paciente, sexo_paciente]
+
+    global dados_velocidade_lista
+    dados_velocidade_lista = [vdcp, Dx, Dy]
 
     show_frame(tela_resultado)
     exibir_canvas(canvas_paciente)
@@ -811,7 +825,6 @@ def ManterColeta():
     global baud
     global porta1
     global ard1
-    global start
     global loopColeta
 
     loopColeta = 1
@@ -834,8 +847,6 @@ def ManterColeta():
 
     show_frame(tela_carregamento)
 
-    start = time.time()
-
     root.after(10, ColetarDados)
 
 
@@ -843,14 +854,24 @@ def ManterColeta():
 
 def ColetarDados():
     
+    global start, fim
+    start = time.time()
+    
     global baud
     global porta1
     global ard1
     global Dados_CopX
     global Dados_CopY
     global Dados_Tempo
-    global start
-   
+    global dxMax, dyMax, dxMin, dyMin, Dx, Dy, intervalo, Dados_Tempo
+
+    inicio = 12
+    fim = 19
+    dxMax = 0
+    dxMin = 0
+    dyMax = 0
+    dyMin = 0
+
     valueRead = ard1.readline()
 
     valueSplit = valueRead.split(b",")
@@ -872,8 +893,6 @@ def ColetarDados():
         X = float(valueSplit[1])
         Y = float(valueSplit[2])
 
-        T = time.time() - start
-
         DxP0= 16.8
         DyP0= 16
         DxP1= 3.4
@@ -892,19 +911,32 @@ def ColetarDados():
         DxP7= 3.8
         DyP7= 16
 
+        intervalo = valueSplit[inicio:fim]
+
         if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
             CopX = (P4*DxP4 + P5*DxP5 + P6*DxP6 + P7*DxP7 - P0*DxP0 - P1*DxP1 - P2*DxP2 - P3*DxP3)/(P0+P1+P2+P3+P4+P5+P6+P7)
+
+            if max(intervalo) > dxMax:
+               dxMax = max(intervalo)
+            if min(intervalo) < dxMin:
+               dxMin = min(intervalo)
+
         else:
             CopX = 0
 
         if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
             CopY = (P0*DyP0 + P1*DyP1 + P4*DyP4 + P5*DyP5 - P2*DyP2 - P3*DyP3 - P6*DyP6 - P7*DyP7)/(P0+P1+P2+P3+P4+P5+P6+P7)
+
+            if max(intervalo) > dyMax:
+               dyMax = max(intervalo)
+            if min(intervalo) < dyMin:
+               dyMin = min(intervalo)
+
         else:
             CopY = 0
 
         Dados_CopX.append(CopX)
         Dados_CopY.append(CopY)
-        Dados_Tempo.append(T)
 
         ax3.clear() #Limpa o grafico
 
@@ -924,7 +956,14 @@ def ColetarDados():
         ard1.close() #Fecha a conexão com o Teensy
         subprocess.call("taskkill /f /im WindowsTerminal.exe", shell=True) #Fecha programa de coleta
 
-        print(str(Dados_CopX) + " " + str(Dados_CopY) + " " + str(Dados_Tempo))
+    Dx = dxMax - dxMin
+    Dy = dyMax - dyMin
+    
+    fim = time.time()
+    T = fim - start
+    Dados_Tempo = T
+
+    #print(str(Dados_CopX) + " " + str(Dados_CopY) + " " + str(Dados_Tempo))
 
 
 #MARK: TELA CARREGAMENTO ---------------------------------------------------------------------------------------------------------------------------
@@ -1181,6 +1220,16 @@ def LerArquivo():
 
     canvasMatplot2.draw() #Desenha o grafico
 
+    global dados_velocidade_lista
+
+    #MARK: Definindo como 0 para teste sem o teensy
+    Dados_Tempo = 0
+    Dx = 18.82
+    Dy = 7.33
+
+    vdcp = Dados_Tempo
+    dados_velocidade_lista = [vdcp, Dx, Dy]
+
     salvar_dados()
 
 
@@ -1252,12 +1301,12 @@ def exibir_dados_velocidade():
     canvas_width = canvas_velocidade.winfo_width()
     canvas_height = canvas_velocidade.winfo_height()
 
-    vdcp, dx, dy = dados_velocidade_lista
+    vdcp, Dx, Dy = dados_velocidade_lista
 
     canvas_velocidade.create_text(canvas_width * 0.5, canvas_height * 0.1, 
                                 text=f"Velocidade do Centro de Pressao: {vdcp}", font=("Inter", fontsize22, "bold"), fill="#304462", anchor = "center")
     canvas_velocidade.create_text(canvas_width * 0.5, canvas_height * 0.2, 
-                                text=f"DX: {dx}  |  DY: {dy}", font=("Inter", fontsize-1), fill="#656565")
+                                text=f"DX: {Dx}  |  DY: {Dy}", font=("Inter", fontsize-1), fill="#656565")
 
 # Função para exibir o canvas correto
 def exibir_canvas(canvas):
@@ -1317,6 +1366,10 @@ dados_salvos = []
 #MARK: SALVAR DADOS()
 def salvar_dados():
     
+    vdcp = dados_velocidade_lista[0]
+    Dx = dados_velocidade_lista[1]
+    Dy = dados_velocidade_lista[2]
+    
     nome = dados_paciente_lista[0]
     idade = dados_paciente_lista[1]
     altura = dados_paciente_lista[2]
@@ -1348,7 +1401,10 @@ def salvar_dados():
         'D16': allData16,
         'D17': allData17,
         'D18': allData18,
-        'D19': allData19
+        'D19': allData19,
+        'Tempo': vdcp,
+        'Dx': Dx,
+        'Dy': Dy
     }
 
     df = pd.DataFrame(data)
