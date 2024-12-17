@@ -266,6 +266,8 @@ def CarregarPerfil():
 
     Dados_CopX = [0]
     Dados_CopY = [0]
+    Dados7 = [0]
+    Dados8 = [0]
 
     num = 0
 
@@ -334,6 +336,9 @@ def CarregarPerfil():
         Dados_CopX.append(CopX)
         Dados_CopY.append(CopY)
 
+        Dados7.append(D7)
+        Dados8.append(D8)
+
         num = num + 1
 
     ax2.clear() #Limpa o grafico
@@ -344,6 +349,13 @@ def CarregarPerfil():
     ax2.plot(Dados_CopX, Dados_CopY, color='#304462')
 
     canvasMatplot2.draw() #Desenha o grafico
+
+    ax4.clear() #Limpa o grafico
+
+    ax4.plot(Dados7, color='#304462')
+    ax4.plot(Dados8, color="red")
+
+    canvasMatplot4.draw() #Desenha o grafico
     
     global dados_paciente_lista
     dados_paciente_lista = [nome_paciente, idade_paciente, altura_paciente, peso_paciente, sexo_paciente]
@@ -435,6 +447,13 @@ bg_btn_conf1 = Image.open("UI/Parametros/btn_confirmar.png")
 bg_btn_conf1 = bg_btn1.resize((width_bg_conf, height_bg_conf), Image.Resampling.LANCZOS)
 bg_btn_conf = ImageTk.PhotoImage(bg_btn_conf1)
 
+#Botão Adicionar - Remover
+width_bg_adc = int((physical_width * 2.6) / 100)
+height_bg_adc = int((physical_width * 2.6) / 100)
+bg_btn_adc1 = Image.open("UI/Parametros/btn_adc-rmv.png")
+bg_btn_adc1 = bg_btn_adc1.resize((width_bg_adc, height_bg_adc), Image.Resampling.LANCZOS)
+bg_btn_adc = ImageTk.PhotoImage(bg_btn_adc1)
+
 #MARK: CANVAS MOVIMENTAÇÃO -------------------------
 canvas_movimentacao = Canvas(
     tela_parametros,
@@ -461,13 +480,13 @@ canvas_oscilacao.place(relx=0.3453,rely=0.3491,anchor="nw")
 rotina = ctk.CTkScrollableFrame(
     tela_parametros,
     width=(screen_width * 20.5/100),
-    height=(screen_height * 41/100),
+    height=(screen_height * 33/100),
     corner_radius = 15,
     fg_color="#E0E7EC",
+    bg_color="#E0E7EC",
     orientation = "vertical"
     )
 rotina.place(relx=0.0583, rely=0.3481, anchor = "nw")
-
 
 matriz_parametros = []
 combobox_criada = []
@@ -476,21 +495,60 @@ global index_combo
 index_radio = 0
 index_combo = 0
 
-
-#for criando e inicializando um array dentro de um array (matriz) com valores zerados
-for i in range (5):
-    row = []
-    for j in range (7):
-        row.append(0)
-    matriz_parametros.append(row)
-        
 var = ctk.IntVar()
 
-def gerar_widgets(scrollable_frame, num_widgets,var):
+def adicionar_linha():
+    global matriz_parametros
+
+    # Adiciona uma nova linha de valores zerados na matriz
+    nova_linha = [0] * 7
+    matriz_parametros.append(nova_linha)
+
+    # Chama a função para adicionar um pacote de widgets
+    gerar_widgets(rotina, 1, var, len(matriz_parametros) - 1)
+    
+    print(f"Matriz atualizada: {matriz_parametros}")
+    
+
+def remover_linha():
+    global matriz_parametros, combobox_criada, frames_widgets
+
+    # Verifica se há elementos para remover
+    if len(matriz_parametros) > 0:
+        # Remove a última linha da matriz
+        matriz_parametros.pop()
+
+        # Verifica e remove o último frame de widgets
+        if frames_widgets:
+            frame_para_remover = frames_widgets.pop()
+            frame_para_remover.destroy()  # Remove visualmente o frame
+
+        # Verifica e remove o último combobox
+        if combobox_criada:
+            combobox_criada.pop()
+            
+        print(f"Matriz atualizada: {matriz_parametros}")
+        
+def atualizar_indices():
+    # Atualiza os valores de rádio e índices na combobox para se manterem coerentes
+    for i, frame in enumerate(frames_widgets):
+        # Atualizar variável de rádio
+        radio_buttons[i].configure(value=i)
+        radio_buttons[i].configure(command=lambda v=i: radio_button(v))
+
+        # Atualizar comando da combobox
+        combobox_criada[i].configure(command=lambda line, v=i: combo_box(line, v))
+
+def gerar_widgets(scrollable_frame, num_widgets, var, indice):
+    global combobox_criada, frames_widgets
+    idx_inicial = len(combobox_criada)  # Pegue o índice inicial da lista atual
+    
     for i in range(num_widgets):
-        # Criar o Frame para o ComboBox e RadioButton
-        frame01 = ctk.CTkFrame(scrollable_frame,bg_color = "#E0E7EC",fg_color="#FFFFFF")
-        frame01.pack(fill="x", pady = (screen_width * 0.5)/100)
+        frame01 = ctk.CTkFrame(scrollable_frame, bg_color="#E0E7EC", fg_color="#E0E7EC")
+        frame01.pack(fill="x", pady=(screen_width * 0.5) / 100)
+
+        # Adiciona o frame à lista de frames
+        frames_widgets.append(frame01)
 
         # RadioButton
         radio1 = ctk.CTkRadioButton(
@@ -498,18 +556,17 @@ def gerar_widgets(scrollable_frame, num_widgets,var):
             width=(screen_width * 1.3)/100,
             height=(screen_width * 1.3)/100,
             text="",
-            variable=var,  # Compartilhando a mesma variável
-            value=i + 1,   # Valor único para este botão
+            variable=var,
+            value=idx_inicial + i,  # Corrigindo o índice para sempre ser sequencial
             fg_color="#0b2243",
             border_color="#A7BBCB",
             border_width_checked=(screen_width * 0.41)/100,
-            command=lambda v = i: radio_button(v)
+            command=lambda v=idx_inicial + i: radio_button(v)
         )
-        radio1.pack(side="left", padx=(screen_width * 0.9)/100, pady=(screen_width * 0.4)/100)
-
-        # Combobox
+        radio1.pack(side="left", padx=(screen_width * 0.9) / 100, pady=(screen_width * 0.4) / 100)
+        
+        # ComboBox
         opcoes = ["Movimentação", "Oscilação"]
-        global combobox
         combobox = ctk.CTkComboBox(
             frame01,
             values=opcoes,
@@ -526,12 +583,59 @@ def gerar_widgets(scrollable_frame, num_widgets,var):
             border_color="#304462",
             button_hover_color="#0B2243",
             dropdown_hover_color="#0b2243",
-            command=lambda line, v=i: combo_box(line, v),  # Passa o valor atual de `i`
+            state="normal",
+            command=lambda line, v=idx_inicial + i: combo_box(line, v)
         )
+        # Evita edição manual do texto
+        combobox.bind("<Key>", lambda e: "break")
         combobox.set("Selecione uma opção")
-        combobox.configure(state="disabled") 
-        combobox.pack(side="right", padx=(screen_width * 0.9)/100, pady=(screen_width * 0.4)/100)
+        combobox.configure(state="disabled")
+        combobox.pack(side="right", padx=(screen_width * 0.9) / 100, pady=(screen_width * 0.4) / 100)
+
+        # Adiciona à lista de ComboBoxes
         combobox_criada.append(combobox)
+
+        # Imprime o índice da matriz como teste (ou pode ser utilizado onde for necessário)
+        print(f"Índice da matriz: {indice}")
+
+# Inicialização de listas auxiliares
+frames_widgets = []  # Armazena referências aos frames
+radio_buttons = []   # Armazena referências aos botões de rádio
+
+# Botão Adicionar
+btn_adicionar = Button(
+    tela_parametros,
+    text="+",
+    font=("Inter", fontsize14+3,"bold"),
+    fg="#E0E0E0",
+    activebackground="#E0E7EC",
+    background="#E0E7EC",
+    image=bg_btn_adc,
+    width=((physical_width * 3) / 100)-2,
+    height=((physical_width * 3) / 100)-2,
+    compound="center",
+    bd=0,
+    activeforeground="#f7c360",
+    command=adicionar_linha
+)
+btn_adicionar.place(relx=0.1693, rely=0.726, anchor="center")
+
+btn_remover = Button(
+    tela_parametros,
+    text="-",
+    font=("Inter", fontsize14+3, "bold"),
+    fg="#E0E0E0",
+    activebackground="#E0E7EC",
+    background="#E0E7EC",
+    image=bg_btn_adc,
+    width=((physical_width * 3) / 100) - 2,
+    height=((physical_width * 3) / 100) - 2,
+    compound="center",
+    bd=0,
+    activeforeground="#f7c360",
+    command=lambda: remover_linha()
+)
+btn_remover.place(relx=0.2, rely=0.726, anchor="center")
 
 #Essa função só chama se o raio botão relacionado está clicado - Criar verificação se o index selecionado do radio é o mesmo da combobox
 def combo_box(line, idx):
@@ -545,7 +649,7 @@ def combo_box(line, idx):
 
 def radio_button(value):
     global index_radio
-    index_radio = value  # Atualiza o índice do radio selecionado
+    index_radio = value
     print(f"Radio selecionado: {index_radio}")
 
     canvas_movimentacao.place_forget()
@@ -555,18 +659,18 @@ def radio_button(value):
     for combobox in combobox_criada:
         combobox.configure(state="disabled")
 
-    # Ativar apenas a combobox correspondente ao índice do radio
+    # Verifique se o índice é válido antes de acessar a lista
     if 0 <= index_radio < len(combobox_criada):
         combobox_criada[index_radio].configure(state="normal")
 
-    # Restaurar valores se já existem na matriz
-    if combobox_criada[index_radio].get() == "Movimentação":
-        mostrar_movimentacao()
-    elif combobox_criada[index_radio].get() == "Oscilação":
-        mostrar_oscilacao()
+        # Restaurar valores se já existem na matriz
+        if combobox_criada[index_radio].get() == "Movimentação":
+            mostrar_movimentacao()
+        elif combobox_criada[index_radio].get() == "Oscilação":
+            mostrar_oscilacao()
+    else:
+        print(f"Erro: Índice {index_radio} fora do intervalo!")
     
-gerar_widgets(rotina, 5, var)
-
 
 def mostrar_movimentacao():
     canvas_movimentacao.place(relx=0.3453,rely=0.3491,anchor="nw")  # Exibe o canvas de movimentação
@@ -815,6 +919,16 @@ canvas_grafico_carregamento.place(relx=0.5, rely=0.5, anchor="center")  # Centra
 canvasMatplot3 = FigureCanvasTkAgg(fig3, master = canvas_grafico_carregamento)
 canvasMatplot3.get_tk_widget().pack()
 
+# Canvas EMG
+fig4 = matplotlib.figure.Figure()
+ax4 = fig4.add_subplot()
+
+canvas_grafico_emg = Canvas(tela_resultado, width=890, height=480, bg="white", highlightthickness=4, highlightbackground = "#8ca0b1")
+canvas_grafico_emg.place(relx=0.5, rely=0.5, anchor="center")  # Centralizado na tela
+
+canvasMatplot4 = FigureCanvasTkAgg(fig4, master = canvas_grafico_emg)
+canvasMatplot4.get_tk_widget().pack()
+
 #MARK: MANTER COLETA()
 def ManterColeta():
 
@@ -826,6 +940,8 @@ def ManterColeta():
     global porta1
     global ard1
     global loopColeta
+    global start
+    
 
     loopColeta = 1
     baud = 9600
@@ -847,6 +963,8 @@ def ManterColeta():
 
     show_frame(tela_carregamento)
 
+    start = time.time()
+
     root.after(10, ColetarDados)
 
 
@@ -855,22 +973,13 @@ def ManterColeta():
 def ColetarDados():
     
     global start, fim
-    start = time.time()
-    
     global baud
     global porta1
     global ard1
     global Dados_CopX
     global Dados_CopY
     global Dados_Tempo
-    global dxMax, dyMax, dxMin, dyMin, Dx, Dy, intervalo, Dados_Tempo
-
-    inicio = 12
-    fim = 19
-    dxMax = 0
-    dxMin = 0
-    dyMax = 0
-    dyMin = 0
+    global Dados_Tempo
 
     valueRead = ard1.readline()
 
@@ -911,26 +1020,13 @@ def ColetarDados():
         DxP7= 3.8
         DyP7= 16
 
-        intervalo = valueSplit[inicio:fim]
-
         if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
             CopX = (P4*DxP4 + P5*DxP5 + P6*DxP6 + P7*DxP7 - P0*DxP0 - P1*DxP1 - P2*DxP2 - P3*DxP3)/(P0+P1+P2+P3+P4+P5+P6+P7)
-
-            if max(intervalo) > dxMax:
-               dxMax = max(intervalo)
-            if min(intervalo) < dxMin:
-               dxMin = min(intervalo)
-
         else:
             CopX = 0
 
         if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
             CopY = (P0*DyP0 + P1*DyP1 + P4*DyP4 + P5*DyP5 - P2*DyP2 - P3*DyP3 - P6*DyP6 - P7*DyP7)/(P0+P1+P2+P3+P4+P5+P6+P7)
-
-            if max(intervalo) > dyMax:
-               dyMax = max(intervalo)
-            if min(intervalo) < dyMin:
-               dyMin = min(intervalo)
 
         else:
             CopY = 0
@@ -955,13 +1051,9 @@ def ColetarDados():
 
         ard1.close() #Fecha a conexão com o Teensy
         subprocess.call("taskkill /f /im WindowsTerminal.exe", shell=True) #Fecha programa de coleta
-
-    Dx = dxMax - dxMin
-    Dy = dyMax - dyMin
     
     fim = time.time()
-    T = fim - start
-    Dados_Tempo = T
+    Dados_Tempo = fim - start
 
     #print(str(Dados_CopX) + " " + str(Dados_CopY) + " " + str(Dados_Tempo))
 
@@ -979,7 +1071,7 @@ btn_iniciarCarregamento = Button(
     compound="center",
     bd=0,
     activeforeground="#f7c360",
-    command=lambda: ManterColeta()
+    command=lambda: show_frame(tela_carregamento)
 )
 btn_iniciarCarregamento.place(relx=0.7969, rely=0.8611)
 
@@ -1088,6 +1180,21 @@ canvasMatplot2.get_tk_widget().pack()
 #dy_label = Label(canvas_velocidade, text="DY", font=("Helvetica", 16), fg="#24344D", bg= "#EBEBEB")
 #dy_label.place(relx=0.5, rely=0.7, anchor="center")
 
+fig4 = matplotlib.figure.Figure()
+ax4 = fig4.add_subplot()
+
+canvas_grafico_emg = Canvas(canvas_emg, 
+    width=(physical_width * 46)/100, 
+    height=(physical_height * 60)/100, 
+    bg="#ffffff",
+    highlightthickness=6,
+    highlightcolor="#A7BBCB",
+    highlightbackground="#A7BBCB")
+canvas_grafico_emg.place(relx=0.5, rely=0.5, anchor="center")  # Centralizado na tela
+
+canvasMatplot4 = FigureCanvasTkAgg(fig4, master = canvas_grafico_emg)
+canvasMatplot4.get_tk_widget().pack()
+
 
 #MARK: Ler Arquivo() --------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1097,6 +1204,7 @@ def LerArquivo():
     global D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11
     global P0, P1, P2, P3, P4, P5, P6, P7
     global allData0, allData1, allData2, allData3, allData4, allData5, allData6, allData7, allData8, allData9, allData10, allData11, allData12, allData13, allData14, allData15, allData16, allData17, allData18, allData19
+    global dxMax, dxMin, dyMax, dyMin
 
     allData0 = [0]
     allData1 = [0]
@@ -1123,6 +1231,7 @@ def LerArquivo():
     Dados_CopY = [0]
     
     ax2.clear() #Limpa o grafico
+    ax4.clear()
 
     list_of_files = glob.glob('*.tsv') # * means all if need specific format then *.csv
     latest_file = max(list_of_files, key=os.path.getctime)
@@ -1142,6 +1251,8 @@ def LerArquivo():
                 D1 = float(re.sub("[^0-9]", "", valueSplit[1]))
                 D2 = float(re.sub("[^0-9]", "", valueSplit[2]))
                 D3 = float(re.sub("[^0-9]", "", valueSplit[3]))
+                
+                #Dados EMG
                 D4 = float(re.sub("[^0-9]", "", valueSplit[4]))
                 D5 = float(re.sub("[^0-9]", "", valueSplit[5]))
                 D6 = float(re.sub("[^0-9]", "", valueSplit[6]))
@@ -1151,6 +1262,7 @@ def LerArquivo():
                 D10 = float(re.sub("[^0-9]", "", valueSplit[10]))
                 D11 = float(re.sub("[^0-9]", "", valueSplit[11]))
                 
+                #Dados COP
                 P0 = float(re.sub("[^0-9]", "", valueSplit[12]))
                 P1 = float(re.sub("[^0-9]", "", valueSplit[13]))
                 P2 = float(re.sub("[^0-9]", "", valueSplit[14]))
@@ -1213,6 +1325,14 @@ def LerArquivo():
                 Dados_CopX.append(CopX)
                 Dados_CopY.append(CopY)
 
+    dxMax = max(Dados_CopX)
+    dxMin = min(Dados_CopX)
+    dyMax = max(Dados_CopY)
+    dyMin = min(Dados_CopY)
+
+    Dx = dxMax - dxMin
+    Dy = dyMax - dyMin
+    
     lineX = [0, 0, -20, -20, 20, 20, 0]
     lineY = [20, -20, -20, 20, 20, -20, -20]
     ax2.plot(lineX, lineY, color='#A7BBCB')
@@ -1220,14 +1340,36 @@ def LerArquivo():
 
     canvasMatplot2.draw() #Desenha o grafico
 
+    ax4.plot(allData7, color='#304462')
+    ax4.plot(allData8, color='red')
+
+    canvasMatplot4.draw() #Desenha o grafico
+
+
     global dados_velocidade_lista
 
     #MARK: Definindo como 0 para teste sem o teensy
-    Dados_Tempo = 0
-    Dx = 18.82
-    Dy = 7.33
+    Dados_Tempo = 5
 
-    vdcp = Dados_Tempo
+    n = 0
+    Dt = 0
+
+    while n < (len(Dados_CopX))-2:
+
+        x1 = Dados_CopX[(n+1)]
+        x2 = Dados_CopX[((n+1) + 1)]
+
+        y1 = Dados_CopY[(n+1)]
+        y2 = Dados_CopY[((n+1) + 1)]
+
+        d = math.sqrt((x1-x2) **2 + (y1-y2) **2)
+
+        Dt = Dt + d
+
+        n = n + 1
+
+    vdcp = Dt / Dados_Tempo
+
     dados_velocidade_lista = [vdcp, Dx, Dy]
 
     salvar_dados()
@@ -1264,7 +1406,7 @@ canvas_emg.place(relx=0.4688, rely=0.213, anchor='nw')
 #canvas_centro_pressao.create_text(395, 100, text="Centro de Pressão", font=("Arial", 20, "bold"), fill="#000000")
 canvas_distr_massas.create_text(395, 100, text="Distribuição de Massa", font=("Arial", 20, "bold"), fill="#000000")
 #canvas_velocidade.create_text(395, 100, text="Velocidade", font=("Arial", 20, "bold"), fill="#000000")
-canvas_emg.create_text(395, 100, text="EMG", font=("Arial", 20, "bold"), fill="#000000")
+#canvas_emg.create_text(395, 100, text="EMG", font=("Arial", 20, "bold"), fill="#000000")
 
 
 #Botão Pressionado
@@ -1304,9 +1446,9 @@ def exibir_dados_velocidade():
     vdcp, Dx, Dy = dados_velocidade_lista
 
     canvas_velocidade.create_text(canvas_width * 0.5, canvas_height * 0.1, 
-                                text=f"Velocidade do Centro de Pressao: {vdcp}", font=("Inter", fontsize22, "bold"), fill="#304462", anchor = "center")
+                                text=f"Velocidade do Centro de Pressao: {str(round(vdcp,2))} cm/s", font=("Inter", fontsize22, "bold"), fill="#304462", anchor = "center")
     canvas_velocidade.create_text(canvas_width * 0.5, canvas_height * 0.2, 
-                                text=f"DX: {Dx}  |  DY: {Dy}", font=("Inter", fontsize-1), fill="#656565")
+                                text=f"DX: {str(round(Dx,2))}  |  DY: {str(round(Dy,2))}", font=("Inter", fontsize-1), fill="#656565")
 
 # Função para exibir o canvas correto
 def exibir_canvas(canvas):
