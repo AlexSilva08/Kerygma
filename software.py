@@ -264,10 +264,19 @@ def CarregarPerfil():
     filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
     Dados = pd.read_excel(filename)
 
+    global allData4, allData5, allData6, allData7, allData8, allData9, allData10, allData11
+
+    allData4 = [0]
+    allData5 = [0]
+    allData6 = [0]
+    allData7 = [0]
+    allData8 = [0]
+    allData9 = [0]
+    allData10 = [0]
+    allData11 = [0]
+
     Dados_CopX = [0]
     Dados_CopY = [0]
-    Dados7 = [0]
-    Dados8 = [0]
 
     num = 0
 
@@ -286,6 +295,7 @@ def CarregarPerfil():
         D1 = Dados.D1[num]
         D2 = Dados.D2[num]
         D3 = Dados.D3[num]
+
         D4 = Dados.D4[num]
         D5 = Dados.D5[num]
         D6 = Dados.D6[num]
@@ -336,8 +346,14 @@ def CarregarPerfil():
         Dados_CopX.append(CopX)
         Dados_CopY.append(CopY)
 
-        Dados7.append(D7)
-        Dados8.append(D8)
+        allData4.append(D4)
+        allData5.append(D5)
+        allData6.append(D6)
+        allData7.append(D7)
+        allData8.append(D8)
+        allData9.append(D9)
+        allData10.append(D10)
+        allData11.append(D11)
 
         num = num + 1
 
@@ -348,14 +364,9 @@ def CarregarPerfil():
     ax2.plot(lineX, lineY, color='#A7BBCB')
     ax2.plot(Dados_CopX, Dados_CopY, color='#304462')
 
+    print("rodou matplot2")
+
     canvasMatplot2.draw() #Desenha o grafico
-
-    ax4.clear() #Limpa o grafico
-
-    ax4.plot(Dados7, color='#304462')
-    ax4.plot(Dados8, color="red")
-
-    canvasMatplot4.draw() #Desenha o grafico
     
     global dados_paciente_lista
     dados_paciente_lista = [nome_paciente, idade_paciente, altura_paciente, peso_paciente, sexo_paciente]
@@ -557,7 +568,7 @@ def gerar_widgets(scrollable_frame, num_widgets, var, indice):
             height=(screen_width * 1.3)/100,
             text="",
             variable=var,
-            value=idx_inicial + i,  # Corrigindo o índice para sempre ser sequencial
+            value=idx_inicial + i+1,  # Corrigindo o índice para sempre ser sequencial
             fg_color="#0b2243",
             border_color="#A7BBCB",
             border_width_checked=(screen_width * 0.41)/100,
@@ -919,16 +930,6 @@ canvas_grafico_carregamento.place(relx=0.5, rely=0.5, anchor="center")  # Centra
 canvasMatplot3 = FigureCanvasTkAgg(fig3, master = canvas_grafico_carregamento)
 canvasMatplot3.get_tk_widget().pack()
 
-# Canvas EMG
-fig4 = matplotlib.figure.Figure()
-ax4 = fig4.add_subplot()
-
-canvas_grafico_emg = Canvas(tela_resultado, width=890, height=480, bg="white", highlightthickness=4, highlightbackground = "#8ca0b1")
-canvas_grafico_emg.place(relx=0.5, rely=0.5, anchor="center")  # Centralizado na tela
-
-canvasMatplot4 = FigureCanvasTkAgg(fig4, master = canvas_grafico_emg)
-canvasMatplot4.get_tk_widget().pack()
-
 #MARK: MANTER COLETA()
 def ManterColeta():
 
@@ -1071,7 +1072,7 @@ btn_iniciarCarregamento = Button(
     compound="center",
     bd=0,
     activeforeground="#f7c360",
-    command=lambda: show_frame(tela_carregamento)
+    command=lambda: ManterColeta()
 )
 btn_iniciarCarregamento.place(relx=0.7969, rely=0.8611)
 
@@ -1103,7 +1104,6 @@ btn_parar.place(relx=0.1042, rely=0.8611)
 canvas_resultado = Canvas(tela_resultado, width=physical_width, height=physical_height)
 canvas_resultado.grid(row=0, column=0)
 canvas_resultado.create_image(0, 0, image=bg_resultado, anchor="nw")
-
 
 # Canvas Detalhes
 canvas_paciente = Canvas(
@@ -1152,6 +1152,8 @@ canvas_emg = Canvas(
     highlightbackground="#A7BBCB"
     )
 
+
+
 #MARK: Canvas Leitura ----------------------------------------------------------------------------------------------------------------------------------
 
 #Label canvas leitura
@@ -1171,15 +1173,6 @@ canvas_grafico_leitura.place(relx=0.5, rely=0.5, anchor="center")  # Centralizad
 canvasMatplot2 = FigureCanvasTkAgg(fig2, master = canvas_grafico_leitura)
 canvasMatplot2.get_tk_widget().pack()
 
-#vdcp_label = Label(canvas_velocidade, text="Velocidade do Centro de Pressão", font=("Helvetica", 16), fg="#24344D", bg= "#EBEBEB")
-#vdcp_label.place(relx=0.5, rely=0.3, anchor="center")
-
-#dx_label = Label(canvas_velocidade, text="DX", font=("Helvetica", 16), fg="#24344D", bg= "#EBEBEB")
-#dx_label.place(relx=0.5, rely=0.5, anchor="center")
-
-#dy_label = Label(canvas_velocidade, text="DY", font=("Helvetica", 16), fg="#24344D", bg= "#EBEBEB")
-#dy_label.place(relx=0.5, rely=0.7, anchor="center")
-
 fig4 = matplotlib.figure.Figure()
 ax4 = fig4.add_subplot()
 
@@ -1190,7 +1183,7 @@ canvas_grafico_emg = Canvas(canvas_emg,
     highlightthickness=6,
     highlightcolor="#A7BBCB",
     highlightbackground="#A7BBCB")
-canvas_grafico_emg.place(relx=0.5, rely=0.5, anchor="center")  # Centralizado na tela
+canvas_grafico_emg.place(relx=0.6, rely=0.55, anchor="center")  # Centralizado na tela
 
 canvasMatplot4 = FigureCanvasTkAgg(fig4, master = canvas_grafico_emg)
 canvasMatplot4.get_tk_widget().pack()
@@ -1314,16 +1307,12 @@ def LerArquivo():
 
                 if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
                     CopX = (P4*DxP4 + P5*DxP5 + P6*DxP6 + P7*DxP7 - P0*DxP0 - P1*DxP1 - P2*DxP2 - P3*DxP3)/(P0+P1+P2+P3+P4+P5+P6+P7)
-                else:
-                    CopX = 0
-
+                    Dados_CopX.append(CopX)
+                
                 if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
                     CopY = (P0*DyP0 + P1*DyP1 + P4*DyP4 + P5*DyP5 - P2*DyP2 - P3*DyP3 - P6*DyP6 - P7*DyP7)/(P0+P1+P2+P3+P4+P5+P6+P7)
-                else:
-                    CopY = 0
-
-                Dados_CopX.append(CopX)
-                Dados_CopY.append(CopY)
+                    Dados_CopY.append(CopY)
+                    
 
     dxMax = max(Dados_CopX)
     dxMin = min(Dados_CopX)
@@ -1340,16 +1329,10 @@ def LerArquivo():
 
     canvasMatplot2.draw() #Desenha o grafico
 
-    ax4.plot(allData7, color='#304462')
-    ax4.plot(allData8, color='red')
-
-    canvasMatplot4.draw() #Desenha o grafico
-
-
     global dados_velocidade_lista
 
     #MARK: Definindo como 0 para teste sem o teensy
-    Dados_Tempo = 5
+    #Dados_Tempo = 5
 
     n = 0
     Dt = 0
@@ -1400,13 +1383,6 @@ canvas_emg.place(relx=0.4688, rely=0.213, anchor='nw')
 
 
 # Conteudo Painel PACIENTE
-
-
-#Texto
-#canvas_centro_pressao.create_text(395, 100, text="Centro de Pressão", font=("Arial", 20, "bold"), fill="#000000")
-canvas_distr_massas.create_text(395, 100, text="Distribuição de Massa", font=("Arial", 20, "bold"), fill="#000000")
-#canvas_velocidade.create_text(395, 100, text="Velocidade", font=("Arial", 20, "bold"), fill="#000000")
-#canvas_emg.create_text(395, 100, text="EMG", font=("Arial", 20, "bold"), fill="#000000")
 
 
 #Botão Pressionado
@@ -1473,6 +1449,12 @@ def exibir_canvas(canvas):
 #MARK: Função do botão Centro de pressão 
     if canvas == canvas_centro_pressao:
 
+        canvas_width = canvas_centro_pressao.winfo_width()
+        canvas_height = canvas_centro_pressao.winfo_height()
+        
+        canvas_centro_pressao.create_text(canvas_width * 0.5, canvas_height * 0.1, 
+        text=f"Gráfico do Centro de pressão", font=("Inter", fontsize22, "bold"), fill="#304462", anchor = "center")
+
         btn_paciente.config(fg="#0B2243", image = bg_btn_paciente)
         btn_centro_pressao.configure(fg="#E0E0E0", image=bg_btn_click)
         btn_distr_massas.configure(fg="#0B2243", image=bg_btn_resultado)
@@ -1487,11 +1469,21 @@ def exibir_canvas(canvas):
         btn_velocidade.configure(fg="#0B2243", image=bg_btn_resultado)
 
     if canvas == canvas_emg:
+        canvas_emg.delete("all")
+
+        canvas_width = canvas_emg.winfo_width()
+        canvas_height = canvas_emg.winfo_height()
+        
+        canvas_emg.create_text(canvas_width * 0.5, canvas_height * 0.1, 
+        text=f"Gráfico EMG", font=("Inter", fontsize22, "bold"), fill="#304462", anchor = "center")
+
         btn_paciente.config(fg="#0B2243", image = bg_btn_paciente)
         btn_centro_pressao.configure(fg="#0B2243", image=bg_btn_resultado)
         btn_distr_massas.configure(fg="#0B2243", image=bg_btn_resultado)
         btn_emg.configure(fg="#E0E0E0", image=bg_btn_click)
         btn_velocidade.configure(fg="#0B2243", image=bg_btn_resultado)
+        canvas_emg.forget()
+        canvasMatplot4.draw()
 
     if canvas == canvas_velocidade:
         exibir_dados_velocidade()
@@ -1561,6 +1553,76 @@ def salvar_dados():
 
     show_frame(tela_resultado)
     exibir_canvas(canvas_paciente)
+
+def check_box_event():
+    # Identifica a variável associada à CheckBox
+
+    ax4.clear()
+    
+    if check_vars[0].get() == "on":
+        ax4.plot(allData4, color='blue')
+
+    if check_vars[1].get() == "on":
+        ax4.plot(allData5, color='red')
+
+    if check_vars[2].get() == "on":
+        ax4.plot(allData6, color='yellow')
+
+    if check_vars[3].get() == "on":
+        ax4.plot(allData7, color='purple')
+
+    if check_vars[4].get() == "on":
+        ax4.plot(allData8, color='green')
+
+    if check_vars[5].get() == "on":
+        ax4.plot(allData9, color='pink')
+
+    if check_vars[6].get() == "on":
+        ax4.plot(allData10, color='black')
+
+    if check_vars[7].get() == "on":
+        ax4.plot(allData11, color='gray')
+
+    canvasMatplot4.draw() #Desenha o grafico
+    
+# Variável associada à CheckBox
+check_vars = [ctk.StringVar(value="off") for _ in range(8)]
+
+# Lista de textos das CheckBoxes
+checkbox_texts = [
+    "Sensor 01",
+    "Sensor 02",
+    "Sensor 03",
+    "Sensor 04",
+    "Sensor 05",
+    "Sensor 06",
+    "Sensor 07",
+    "Sensor 08"
+]
+
+# Criação das CheckBoxes
+checkboxes = []
+for i in range(8):
+    checkbox = ctk.CTkCheckBox(
+        canvas_emg,
+        text=checkbox_texts[i],
+        font=("Inter", 14, "bold"),
+        text_color="#0B2243",
+        corner_radius=5,
+        width=50,
+        height=50,
+        border_color="#A7BBCB",
+        checkmark_color="#e0e0e0",
+        fg_color="#0B2243",
+        bg_color="white",
+        hover_color="#A7BBCB",
+        variable=check_vars[i],
+        onvalue="on",
+        offvalue="off",
+        command=lambda: check_box_event()  # Passa o índice da checkbox
+    )
+    checkbox.place(relx=0.15, rely=0.27 + i * 0.08, anchor="center")
+    checkboxes.append(checkbox)
 
 
 #Background Botões

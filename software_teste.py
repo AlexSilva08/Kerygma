@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import *
 from tkinter import PhotoImage
 from tkinter import messagebox
 from PIL import Image, ImageTk 
@@ -22,16 +23,32 @@ from tkinter import ttk
 import os
 import csv
 import re
+import ctypes
+
+
+ctypes.windll.shcore.SetProcessDpiAwareness(2)
+
+# Resolução física e escala de DPI
+user32 = ctypes.windll.user32
+physical_width = user32.GetSystemMetrics(0)
+physical_height = user32.GetSystemMetrics(1)
+
+dpi = ctypes.windll.shcore.GetScaleFactorForDevice(0)
+scale_factor = dpi / 100
 
 root = ctk.CTk()
 root.title("Nome do Software")
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
+screen_width = int(physical_width / scale_factor)
+screen_height = int(physical_height / scale_factor)
 root.geometry(f"{screen_width}x{screen_height}")
 root.minsize(width=1280, height=720)
 root.grid_rowconfigure(0, weight=1)
 root.grid_columnconfigure(0, weight=1)
 root.attributes("-fullscreen", True)
+
+
+print(dpi, scale_factor,physical_height,physical_width)
+print(screen_height, screen_width)
 
 # Criação das telas    
 tela_inicial = Frame(root)
@@ -62,32 +79,32 @@ show_frame(tela_inicial)
 
 #Background Telas
 bg_geral1 = Image.open("UI/background.png")
-bg_geral1 = bg_geral1.resize((screen_width, screen_height), Image.LANCZOS)
+bg_geral1 = bg_geral1.resize((physical_width, physical_height), Image.LANCZOS)
 bg_geral = ImageTk.PhotoImage(bg_geral1)
 
 bg_dados1 = Image.open("UI/bg_dados.png")
-bg_dados1 = bg_dados1.resize((screen_width, screen_height), Image.LANCZOS)
+bg_dados1 = bg_dados1.resize((physical_width, physical_height), Image.LANCZOS)
 bg_dados = ImageTk.PhotoImage(bg_dados1)
 
 bg_anamnese1 = Image.open("UI/bg_anamnese.png")
-bg_anamnese1 = bg_anamnese1.resize((screen_width, screen_height), Image.LANCZOS)
+bg_anamnese1 = bg_anamnese1.resize((physical_width, physical_height), Image.LANCZOS)
 bg_anamnese = ImageTk.PhotoImage(bg_anamnese1)
 
 bg_parametros1 = Image.open("UI/bg_parametros.png")
-bg_parametros1 = bg_parametros1.resize((screen_width, screen_height), Image.LANCZOS)
+bg_parametros1 = bg_parametros1.resize((physical_width, physical_height), Image.LANCZOS)
 bg_parametros = ImageTk.PhotoImage(bg_parametros1)
 
 bg_carregamento1 = Image.open("UI/bg_carregamento.png")
-bg_carregamento1 = bg_carregamento1.resize((screen_width, screen_height), Image.LANCZOS)
+bg_carregamento1 = bg_carregamento1.resize((physical_width, physical_height), Image.LANCZOS)
 bg_carregamento = ImageTk.PhotoImage(bg_carregamento1)
 
 bg_resultado1 = Image.open("UI/Resultado/bg_resultado.png")
-bg_resultado1 = bg_resultado1.resize((screen_width, screen_height), Image.LANCZOS)
+bg_resultado1 = bg_resultado1.resize((physical_width, physical_height), Image.LANCZOS)
 bg_resultado = ImageTk.PhotoImage(bg_resultado1)
 
 #Bg botão geral
-width_bg_btn = int((screen_width * 9.9) / 100)
-height_bg_btn = int((screen_height * 9.26) / 100)
+width_bg_btn = int((physical_width * 9.9) / 100)
+height_bg_btn = int((physical_height * 9.26) / 100)
 bg_btn1 = Image.open("UI/bg_btn.png")
 bg_btn1 = bg_btn1.resize((width_bg_btn, height_bg_btn), Image.Resampling.LANCZOS)
 bg_btn = ImageTk.PhotoImage(bg_btn1)
@@ -99,7 +116,7 @@ fontsize14 = int((screen_height * 1.30) / 100)
 
 #MARK: TELA INICIAL --------------------------------------------------------------------------------------------------------------
 
-canvas_inicial = Canvas(tela_inicial, width=1920, height=1080)
+canvas_inicial = Canvas(tela_inicial, width=physical_width, height=physical_height)
 canvas_inicial.grid(row=0, column=0)
 canvas_inicial.create_image(0, 0, image=bg_geral, anchor="nw")
 
@@ -133,7 +150,7 @@ toogle_button.place(relx=0.947, rely=0)
 
 # Título
 canvas_inicial.create_text(
-    640, 50,
+    250, 50,
     text="Tela Inicial", 
     font=('Arial', 24, 'bold'), 
     fill="#3e567c"
@@ -146,18 +163,18 @@ btn_iniciar = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
     command=lambda: show_frame(tela_dados) 
 )
-btn_iniciar.place(relx=0.5, rely=0.6, anchor='center')
+btn_iniciar.place(relx=0.5, rely=0.8611, anchor='center')
 
 #MARK: TELA DADOS ----------------------------------------------------------------------------------------------------------
 
-canvas_dados = Canvas(tela_dados, width=screen_width, height=screen_height)
+canvas_dados = Canvas(tela_dados, width=physical_width, height=physical_height)
 canvas_dados.grid(row=0, column=0)
 canvas_dados.create_image(0, 0, image=bg_dados, anchor="nw")
 
@@ -167,25 +184,25 @@ entradas = []
 
 nome_label = Label(tela_dados, text="Nome:", font=("Inter", 16, "bold"), background="#D1DCE4", fg="#2F2F2F")
 nome_label.place(relx=0.5531, rely=0.2758)
-nome_paciente = ctk.CTkEntry(tela_dados, width=(screen_width *38.28/100), height=(screen_height * 6.02/100), font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
+nome_paciente = ctk.CTkEntry(tela_dados, width=(screen_width *38.28/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
 nome_paciente.place(relx=0.5458, rely=0.3138)
 entradas.append(nome_paciente)
 
 idade_label = Label(tela_dados, text="Idade:", font=("Inter", 16, "bold"), background="#D1DCE4", fg="#2F2F2F")
 idade_label.place(relx=0.5531, rely=0.398)
-idade_paciente = ctk.CTkEntry(tela_dados, width=(screen_width * 18.23/100), height=(screen_height * 6.02/100), font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
+idade_paciente = ctk.CTkEntry(tela_dados, width=(screen_width * 18.23/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
 idade_paciente.place(relx=0.5458, rely=0.4306)
 entradas.append(idade_paciente)
 
 altura_label = Label(tela_dados, text="Altura:", font=("Inter", 16, "bold"), background="#D1DCE4", fg="#2F2F2F")
 altura_label.place(relx=0.7573, rely=0.398)
-altura_paciente = ctk.CTkEntry(tela_dados, width=(screen_width *18.23/100), height=(screen_height * 6.02/100), font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
+altura_paciente = ctk.CTkEntry(tela_dados, width=(screen_width *18.23/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
 altura_paciente.place(relx=0.7464, rely=0.4306)
 entradas.append(altura_paciente)
 
 peso_label = Label(tela_dados, text="Peso:", font=("Inter", 16, "bold"), background="#D1DCE4", fg="#2F2F2F")
 peso_label.place(relx=0.5531, rely=0.514)
-peso_paciente = ctk.CTkEntry(tela_dados,width=(screen_width *18.23/100), height=(screen_height * 6.02/100), font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
+peso_paciente = ctk.CTkEntry(tela_dados,width=(screen_width *18.23/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
 peso_paciente.place(relx=0.5458, rely=0.5463)
 entradas.append(peso_paciente)
 
@@ -195,8 +212,8 @@ btn_armazenardados = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -249,6 +266,8 @@ def CarregarPerfil():
 
     Dados_CopX = [0]
     Dados_CopY = [0]
+    Dados7 = [0]
+    Dados8 = [0]
 
     num = 0
 
@@ -317,6 +336,9 @@ def CarregarPerfil():
         Dados_CopX.append(CopX)
         Dados_CopY.append(CopY)
 
+        Dados7.append(D7)
+        Dados8.append(D8)
+
         num = num + 1
 
     ax2.clear() #Limpa o grafico
@@ -327,6 +349,13 @@ def CarregarPerfil():
     ax2.plot(Dados_CopX, Dados_CopY, color='#304462')
 
     canvasMatplot2.draw() #Desenha o grafico
+
+    ax4.clear() #Limpa o grafico
+
+    ax4.plot(Dados7, color='#304462')
+    ax4.plot(Dados8, color="red")
+
+    canvasMatplot4.draw() #Desenha o grafico
     
     global dados_paciente_lista
     dados_paciente_lista = [nome_paciente, idade_paciente, altura_paciente, peso_paciente, sexo_paciente]
@@ -349,8 +378,8 @@ btn_lerArquivo = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -364,8 +393,8 @@ btn_avancarDados = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -375,7 +404,7 @@ btn_avancarDados.place(relx=0.7969, rely=0.8611)
 
 #MARK: TELA ANAMNESE --------------------------------------------------------------------------------------------------------
 
-canvas_anamnese = Canvas(tela_anamnese, width=screen_width, height=screen_height)
+canvas_anamnese = Canvas(tela_anamnese, width=physical_width, height=physical_height)
 canvas_anamnese.grid(row=0, column=0)
 canvas_anamnese.create_image(0, 0, image=bg_anamnese, anchor="nw")
 
@@ -385,8 +414,8 @@ btn_avancarAnamnese = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -396,33 +425,40 @@ btn_avancarAnamnese.place(relx=0.7969, rely=0.8611)
 
 #MARK: TELA PARÂMETROS ----------------------------------------------------------------------------------------------------------
 
-canvas_parametros = Canvas(tela_parametros, width=screen_width, height=screen_height)
+canvas_parametros = Canvas(tela_parametros, width=physical_width, height=physical_height)
 canvas_parametros.grid(row=0, column=0)
 canvas_parametros.create_image(0, 0, image=bg_parametros, anchor="nw")
 
-width_molduras = int((screen_width * 10.35)/100)
-height_moldura01 = int((screen_height * 24.5)/100)
+width_molduras = int((physical_width * 10.35)/100)
+height_moldura01 = int((physical_height * 24.5)/100)
 moldura1 = Image.open("UI/Parametros/moldura_01.png")
 moldura1 = moldura1.resize((width_molduras, height_moldura01 ), Image.LANCZOS)
 moldura01 = ImageTk.PhotoImage(moldura1)
 
-height_moldura02 = int((screen_height * 11.5)/100)
+height_moldura02 = int((physical_height * 11.5)/100)
 moldura2 = Image.open("UI/Parametros/moldura_02.png")
 moldura2 = moldura2.resize((width_molduras, height_moldura02), Image.LANCZOS)
 moldura02 = ImageTk.PhotoImage(moldura2)
 
 #Botão confirmar
-width_bg_conf = int((screen_width * 7.92) / 100)
-height_bg_conf = int((screen_height * 5.5) / 100)
+width_bg_conf = int((physical_width * 7.92) / 100)
+height_bg_conf = int((physical_height * 5.5) / 100)
 bg_btn_conf1 = Image.open("UI/Parametros/btn_confirmar.png")
 bg_btn_conf1 = bg_btn1.resize((width_bg_conf, height_bg_conf), Image.Resampling.LANCZOS)
 bg_btn_conf = ImageTk.PhotoImage(bg_btn_conf1)
 
+#Botão Adicionar - Remover
+width_bg_adc = int((physical_width * 2.6) / 100)
+height_bg_adc = int((physical_width * 2.6) / 100)
+bg_btn_adc1 = Image.open("UI/Parametros/btn_adc-rmv.png")
+bg_btn_adc1 = bg_btn_adc1.resize((width_bg_adc, height_bg_adc), Image.Resampling.LANCZOS)
+bg_btn_adc = ImageTk.PhotoImage(bg_btn_adc1)
+
 #MARK: CANVAS MOVIMENTAÇÃO -------------------------
 canvas_movimentacao = Canvas(
     tela_parametros,
-    width = (screen_width * 58.08)/100,
-    height = (screen_height * 41.20)/100,
+    width = (physical_width * 58.08)/100,
+    height = (physical_height * 41.20)/100,
     bg="#E0E7EC",
     highlightthickness=0,
     highlightcolor=None,
@@ -432,8 +468,8 @@ canvas_movimentacao.place(relx=0.3453,rely=0.3491,anchor="nw")
 
 canvas_oscilacao = Canvas(
     tela_parametros,
-    width = (screen_width * 58.08)/100,
-    height = (screen_height * 41.20)/100,
+    width = (physical_width * 58.08)/100,
+    height = (physical_height * 41.20)/100,
     bg="#E0E7EC",
     highlightthickness=0,
     highlightcolor=None,
@@ -444,13 +480,13 @@ canvas_oscilacao.place(relx=0.3453,rely=0.3491,anchor="nw")
 rotina = ctk.CTkScrollableFrame(
     tela_parametros,
     width=(screen_width * 20.5/100),
-    height=(screen_height * 41/100),
+    height=(screen_height * 33/100),
     corner_radius = 15,
     fg_color="#E0E7EC",
+    bg_color="#E0E7EC",
     orientation = "vertical"
     )
 rotina.place(relx=0.0583, rely=0.3481, anchor = "nw")
-
 
 matriz_parametros = []
 combobox_criada = []
@@ -459,21 +495,60 @@ global index_combo
 index_radio = 0
 index_combo = 0
 
-
-#for criando e inicializando um array dentro de um array (matriz) com valores zerados
-for i in range (5):
-    row = []
-    for j in range (7):
-        row.append(0)
-    matriz_parametros.append(row)
-        
 var = ctk.IntVar()
 
-def gerar_widgets(scrollable_frame, num_widgets,var):
+def adicionar_linha():
+    global matriz_parametros
+
+    # Adiciona uma nova linha de valores zerados na matriz
+    nova_linha = [0] * 7
+    matriz_parametros.append(nova_linha)
+
+    # Chama a função para adicionar um pacote de widgets
+    gerar_widgets(rotina, 1, var, len(matriz_parametros) - 1)
+    
+    print(f"Matriz atualizada: {matriz_parametros}")
+    
+
+def remover_linha():
+    global matriz_parametros, combobox_criada, frames_widgets
+
+    # Verifica se há elementos para remover
+    if len(matriz_parametros) > 0:
+        # Remove a última linha da matriz
+        matriz_parametros.pop()
+
+        # Verifica e remove o último frame de widgets
+        if frames_widgets:
+            frame_para_remover = frames_widgets.pop()
+            frame_para_remover.destroy()  # Remove visualmente o frame
+
+        # Verifica e remove o último combobox
+        if combobox_criada:
+            combobox_criada.pop()
+            
+        print(f"Matriz atualizada: {matriz_parametros}")
+        
+def atualizar_indices():
+    # Atualiza os valores de rádio e índices na combobox para se manterem coerentes
+    for i, frame in enumerate(frames_widgets):
+        # Atualizar variável de rádio
+        radio_buttons[i].configure(value=i)
+        radio_buttons[i].configure(command=lambda v=i: radio_button(v))
+
+        # Atualizar comando da combobox
+        combobox_criada[i].configure(command=lambda line, v=i: combo_box(line, v))
+
+def gerar_widgets(scrollable_frame, num_widgets, var, indice):
+    global combobox_criada, frames_widgets
+    idx_inicial = len(combobox_criada)  # Pegue o índice inicial da lista atual
+    
     for i in range(num_widgets):
-        # Criar o Frame para o ComboBox e RadioButton
-        frame01 = ctk.CTkFrame(scrollable_frame,bg_color = "#E0E7EC",fg_color="#FFFFFF")
-        frame01.pack(fill="x", pady = (screen_width * 0.5)/100)
+        frame01 = ctk.CTkFrame(scrollable_frame, bg_color="#E0E7EC", fg_color="#E0E7EC")
+        frame01.pack(fill="x", pady=(screen_width * 0.5) / 100)
+
+        # Adiciona o frame à lista de frames
+        frames_widgets.append(frame01)
 
         # RadioButton
         radio1 = ctk.CTkRadioButton(
@@ -481,18 +556,17 @@ def gerar_widgets(scrollable_frame, num_widgets,var):
             width=(screen_width * 1.3)/100,
             height=(screen_width * 1.3)/100,
             text="",
-            variable=var,  # Compartilhando a mesma variável
-            value=i + 1,   # Valor único para este botão
+            variable=var,
+            value=idx_inicial + i,  # Corrigindo o índice para sempre ser sequencial
             fg_color="#0b2243",
             border_color="#A7BBCB",
             border_width_checked=(screen_width * 0.41)/100,
-            command=lambda v = i: radio_button(v)
+            command=lambda v=idx_inicial + i: radio_button(v)
         )
-        radio1.pack(side="left", padx=(screen_width * 0.9)/100, pady=(screen_width * 0.4)/100)
-
-        # Combobox
+        radio1.pack(side="left", padx=(screen_width * 0.9) / 100, pady=(screen_width * 0.4) / 100)
+        
+        # ComboBox
         opcoes = ["Movimentação", "Oscilação"]
-        global combobox
         combobox = ctk.CTkComboBox(
             frame01,
             values=opcoes,
@@ -509,12 +583,59 @@ def gerar_widgets(scrollable_frame, num_widgets,var):
             border_color="#304462",
             button_hover_color="#0B2243",
             dropdown_hover_color="#0b2243",
-            command=lambda line, v=i: combo_box(line, v),  # Passa o valor atual de `i`
+            state="normal",
+            command=lambda line, v=idx_inicial + i: combo_box(line, v)
         )
+        # Evita edição manual do texto
+        combobox.bind("<Key>", lambda e: "break")
         combobox.set("Selecione uma opção")
-        combobox.configure(state="disabled") 
-        combobox.pack(side="right", padx=(screen_width * 0.9)/100, pady=(screen_width * 0.4)/100)
+        combobox.configure(state="disabled")
+        combobox.pack(side="right", padx=(screen_width * 0.9) / 100, pady=(screen_width * 0.4) / 100)
+
+        # Adiciona à lista de ComboBoxes
         combobox_criada.append(combobox)
+
+        # Imprime o índice da matriz como teste (ou pode ser utilizado onde for necessário)
+        print(f"Índice da matriz: {indice}")
+
+# Inicialização de listas auxiliares
+frames_widgets = []  # Armazena referências aos frames
+radio_buttons = []   # Armazena referências aos botões de rádio
+
+# Botão Adicionar
+btn_adicionar = Button(
+    tela_parametros,
+    text="+",
+    font=("Inter", fontsize14+3,"bold"),
+    fg="#E0E0E0",
+    activebackground="#E0E7EC",
+    background="#E0E7EC",
+    image=bg_btn_adc,
+    width=((physical_width * 3) / 100)-2,
+    height=((physical_width * 3) / 100)-2,
+    compound="center",
+    bd=0,
+    activeforeground="#f7c360",
+    command=adicionar_linha
+)
+btn_adicionar.place(relx=0.1693, rely=0.726, anchor="center")
+
+btn_remover = Button(
+    tela_parametros,
+    text="-",
+    font=("Inter", fontsize14+3, "bold"),
+    fg="#E0E0E0",
+    activebackground="#E0E7EC",
+    background="#E0E7EC",
+    image=bg_btn_adc,
+    width=((physical_width * 3) / 100) - 2,
+    height=((physical_width * 3) / 100) - 2,
+    compound="center",
+    bd=0,
+    activeforeground="#f7c360",
+    command=lambda: remover_linha()
+)
+btn_remover.place(relx=0.2, rely=0.726, anchor="center")
 
 #Essa função só chama se o raio botão relacionado está clicado - Criar verificação se o index selecionado do radio é o mesmo da combobox
 def combo_box(line, idx):
@@ -528,7 +649,7 @@ def combo_box(line, idx):
 
 def radio_button(value):
     global index_radio
-    index_radio = value  # Atualiza o índice do radio selecionado
+    index_radio = value
     print(f"Radio selecionado: {index_radio}")
 
     canvas_movimentacao.place_forget()
@@ -538,18 +659,18 @@ def radio_button(value):
     for combobox in combobox_criada:
         combobox.configure(state="disabled")
 
-    # Ativar apenas a combobox correspondente ao índice do radio
+    # Verifique se o índice é válido antes de acessar a lista
     if 0 <= index_radio < len(combobox_criada):
         combobox_criada[index_radio].configure(state="normal")
 
-    # Restaurar valores se já existem na matriz
-    if combobox_criada[index_radio].get() == "Movimentação":
-        mostrar_movimentacao()
-    elif combobox_criada[index_radio].get() == "Oscilação":
-        mostrar_oscilacao()
+        # Restaurar valores se já existem na matriz
+        if combobox_criada[index_radio].get() == "Movimentação":
+            mostrar_movimentacao()
+        elif combobox_criada[index_radio].get() == "Oscilação":
+            mostrar_oscilacao()
+    else:
+        print(f"Erro: Índice {index_radio} fora do intervalo!")
     
-gerar_widgets(rotina, 5, var)
-
 
 def mostrar_movimentacao():
     canvas_movimentacao.place(relx=0.3453,rely=0.3491,anchor="nw")  # Exibe o canvas de movimentação
@@ -656,8 +777,8 @@ def configurar_canvas_movimentacao():
     font=("Inter", fontsize14+2,"bold"),
     fg="#E0E0E0",
     image=bg_btn_conf,
-    width=((screen_width * 7.92) / 100)-2,
-    height=((screen_height * 5.5) / 100)-2,
+    width=((physical_width * 7.92) / 100)-2,
+    height=((physical_height * 5.5) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -759,8 +880,8 @@ def configurar_canvas_oscilacao():
     font=("Inter", fontsize14+2,"bold"),
     fg="#E0E0E0",
     image=bg_btn_conf,
-    width=((screen_width * 7.92) / 100)-2,
-    height=((screen_height * 5.5) / 100)-2,
+    width=((physical_width * 7.92) / 100)-2,
+    height=((physical_height * 5.5) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -775,8 +896,8 @@ btn_presets = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -784,7 +905,7 @@ btn_presets = Button(
 btn_presets.place(relx=0.1042, rely=0.8611)
 
 #MARK: CANVAS CARREGAMENTO ---------------------------------------------------------------------------------------------------------------------------
-canvas_carregamento = Canvas(tela_carregamento, width=screen_width, height=screen_height)
+canvas_carregamento = Canvas(tela_carregamento, width=physical_width, height=physical_height)
 canvas_carregamento.grid(row=0, column=0)
 canvas_carregamento.create_image(0, 0, image=bg_carregamento, anchor="nw")
 
@@ -798,16 +919,29 @@ canvas_grafico_carregamento.place(relx=0.5, rely=0.5, anchor="center")  # Centra
 canvasMatplot3 = FigureCanvasTkAgg(fig3, master = canvas_grafico_carregamento)
 canvasMatplot3.get_tk_widget().pack()
 
+# Canvas EMG
+fig4 = matplotlib.figure.Figure()
+ax4 = fig4.add_subplot()
+
+canvas_grafico_emg = Canvas(tela_resultado, width=890, height=480, bg="white", highlightthickness=4, highlightbackground = "#8ca0b1")
+canvas_grafico_emg.place(relx=0.5, rely=0.5, anchor="center")  # Centralizado na tela
+
+canvasMatplot4 = FigureCanvasTkAgg(fig4, master = canvas_grafico_emg)
+canvasMatplot4.get_tk_widget().pack()
+
 #MARK: MANTER COLETA()
 def ManterColeta():
 
     global PararColeta
     global Dados_CopX
     global Dados_CopY
+    global Dados_Tempo
     global baud
     global porta1
     global ard1
     global loopColeta
+    global start
+    
 
     loopColeta = 1
     baud = 9600
@@ -824,8 +958,12 @@ def ManterColeta():
 
     Dados_CopX = [0]
     Dados_CopY = [0]
+    Dados_Tempo = [0]
+
 
     show_frame(tela_carregamento)
+
+    start = time.time()
 
     root.after(10, ColetarDados)
 
@@ -833,24 +971,16 @@ def ManterColeta():
 #MARK: COLETAR DADOS DO TEENSY
 
 def ColetarDados():
-
-    global start, fim
-    start = time.time()
     
+    global start, fim
     global baud
     global porta1
     global ard1
     global Dados_CopX
     global Dados_CopY
-    global dxMax, dyMax, dxMin, dyMin, Dx, Dy, intervalo, Dados_Tempo
+    global Dados_Tempo
+    global Dados_Tempo
 
-    inicio = 12
-    fim = 19
-    dxMax = 0
-    dxMin = 0
-    dyMax = 0
-    dyMin = 0
-   
     valueRead = ard1.readline()
 
     valueSplit = valueRead.split(b",")
@@ -890,26 +1020,13 @@ def ColetarDados():
         DxP7= 3.8
         DyP7= 16
 
-        intervalo = valueSplit[inicio:fim]
-
         if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
             CopX = (P4*DxP4 + P5*DxP5 + P6*DxP6 + P7*DxP7 - P0*DxP0 - P1*DxP1 - P2*DxP2 - P3*DxP3)/(P0+P1+P2+P3+P4+P5+P6+P7)
-
-            if max(intervalo) > dxMax:
-               dxMax = max(intervalo)
-            if min(intervalo) < dxMin:
-               dxMin = min(intervalo)
-
         else:
             CopX = 0
 
         if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
             CopY = (P0*DyP0 + P1*DyP1 + P4*DyP4 + P5*DyP5 - P2*DyP2 - P3*DyP3 - P6*DyP6 - P7*DyP7)/(P0+P1+P2+P3+P4+P5+P6+P7)
-
-            if max(intervalo) > dyMax:
-               dyMax = max(intervalo)
-            if min(intervalo) < dyMin:
-               dyMin = min(intervalo)
 
         else:
             CopY = 0
@@ -926,7 +1043,6 @@ def ColetarDados():
 
         canvasMatplot3.draw() #Desenha o grafico
 
-
     if(loopColeta) == 1:
         root.after(10, ColetarDados)
     else: 
@@ -935,13 +1051,9 @@ def ColetarDados():
 
         ard1.close() #Fecha a conexão com o Teensy
         subprocess.call("taskkill /f /im WindowsTerminal.exe", shell=True) #Fecha programa de coleta
-
-    Dx = dxMax - dxMin
-    Dy = dyMax - dyMin
     
     fim = time.time()
-    T = fim - start
-    Dados_Tempo = T
+    Dados_Tempo = fim - start
 
     #print(str(Dados_CopX) + " " + str(Dados_CopY) + " " + str(Dados_Tempo))
 
@@ -954,12 +1066,12 @@ btn_iniciarCarregamento = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
-    command=lambda: show_frame(tela_carregamento) #MARK: Mudar para ManterColeta() para Testes
+    command=lambda: show_frame(tela_carregamento)
 )
 btn_iniciarCarregamento.place(relx=0.7969, rely=0.8611)
 
@@ -975,8 +1087,8 @@ btn_parar = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -988,7 +1100,7 @@ btn_parar.place(relx=0.1042, rely=0.8611)
 
 #MARK: TELA RESULTADO -----------------------------------------------------------------------------------------------------------------------------------------
 
-canvas_resultado = Canvas(tela_resultado, width=screen_width, height=screen_height)
+canvas_resultado = Canvas(tela_resultado, width=physical_width, height=physical_height)
 canvas_resultado.grid(row=0, column=0)
 canvas_resultado.create_image(0, 0, image=bg_resultado, anchor="nw")
 
@@ -996,8 +1108,8 @@ canvas_resultado.create_image(0, 0, image=bg_resultado, anchor="nw")
 # Canvas Detalhes
 canvas_paciente = Canvas(
     tela_resultado,
-    width=(screen_width * 46)/100,
-    height=(screen_height * 60)/100,
+    width=(physical_width * 46)/100,
+    height=(physical_height * 60)/100,
     bg="#ffffff",
     highlightthickness=6,
     highlightcolor="#A7BBCB",
@@ -1005,8 +1117,8 @@ canvas_paciente = Canvas(
     )
 canvas_centro_pressao = Canvas(
     tela_resultado, 
-    width=(screen_width * 46)/100, 
-    height=(screen_height * 60)/100, 
+    width=(physical_width * 46)/100, 
+    height=(physical_height * 60)/100, 
     bg="#ffffff",
     highlightthickness=6,
     highlightcolor="#A7BBCB",
@@ -1014,8 +1126,8 @@ canvas_centro_pressao = Canvas(
     )
 canvas_distr_massas = Canvas(
     tela_resultado,
-    width=(screen_width * 46)/100,
-    height=(screen_height * 60)/100,
+    width=(physical_width * 46)/100,
+    height=(physical_height * 60)/100,
     bg="#ffffff",
     highlightthickness=6,
     highlightcolor="#A7BBCB",
@@ -1023,8 +1135,8 @@ canvas_distr_massas = Canvas(
     )
 canvas_velocidade = Canvas(
     tela_resultado,
-    width=(screen_width * 46)/100,
-    height=(screen_height * 60)/100,
+    width=(physical_width * 46)/100,
+    height=(physical_height * 60)/100,
     bg="#ffffff",
     highlightthickness=6,
     highlightcolor="#A7BBCB",
@@ -1032,8 +1144,8 @@ canvas_velocidade = Canvas(
     )
 canvas_emg = Canvas(
     tela_resultado,
-    width=(screen_width * 46)/100,
-    height=(screen_height * 60)/100,
+    width=(physical_width * 46)/100,
+    height=(physical_height * 60)/100,
     bg="#ffffff",
     highlightthickness=6,
     highlightcolor="#A7BBCB",
@@ -1048,8 +1160,8 @@ fig2 = matplotlib.figure.Figure()
 ax2 = fig2.add_subplot()
 
 canvas_grafico_leitura = Canvas(canvas_centro_pressao, 
-    width=(screen_width * 46)/100, 
-    height=(screen_height * 60)/100, 
+    width=(physical_width * 46)/100, 
+    height=(physical_height * 60)/100, 
     bg="#ffffff",
     highlightthickness=6,
     highlightcolor="#A7BBCB",
@@ -1068,6 +1180,21 @@ canvasMatplot2.get_tk_widget().pack()
 #dy_label = Label(canvas_velocidade, text="DY", font=("Helvetica", 16), fg="#24344D", bg= "#EBEBEB")
 #dy_label.place(relx=0.5, rely=0.7, anchor="center")
 
+fig4 = matplotlib.figure.Figure()
+ax4 = fig4.add_subplot()
+
+canvas_grafico_emg = Canvas(canvas_emg, 
+    width=(physical_width * 46)/100, 
+    height=(physical_height * 60)/100, 
+    bg="#ffffff",
+    highlightthickness=6,
+    highlightcolor="#A7BBCB",
+    highlightbackground="#A7BBCB")
+canvas_grafico_emg.place(relx=0.5, rely=0.5, anchor="center")  # Centralizado na tela
+
+canvasMatplot4 = FigureCanvasTkAgg(fig4, master = canvas_grafico_emg)
+canvasMatplot4.get_tk_widget().pack()
+
 
 #MARK: Ler Arquivo() --------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1077,6 +1204,7 @@ def LerArquivo():
     global D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11
     global P0, P1, P2, P3, P4, P5, P6, P7
     global allData0, allData1, allData2, allData3, allData4, allData5, allData6, allData7, allData8, allData9, allData10, allData11, allData12, allData13, allData14, allData15, allData16, allData17, allData18, allData19
+    global dxMax, dxMin, dyMax, dyMin
 
     allData0 = [0]
     allData1 = [0]
@@ -1103,6 +1231,7 @@ def LerArquivo():
     Dados_CopY = [0]
     
     ax2.clear() #Limpa o grafico
+    ax4.clear()
 
     list_of_files = glob.glob('*.tsv') # * means all if need specific format then *.csv
     latest_file = max(list_of_files, key=os.path.getctime)
@@ -1122,6 +1251,8 @@ def LerArquivo():
                 D1 = float(re.sub("[^0-9]", "", valueSplit[1]))
                 D2 = float(re.sub("[^0-9]", "", valueSplit[2]))
                 D3 = float(re.sub("[^0-9]", "", valueSplit[3]))
+                
+                #Dados EMG
                 D4 = float(re.sub("[^0-9]", "", valueSplit[4]))
                 D5 = float(re.sub("[^0-9]", "", valueSplit[5]))
                 D6 = float(re.sub("[^0-9]", "", valueSplit[6]))
@@ -1131,6 +1262,7 @@ def LerArquivo():
                 D10 = float(re.sub("[^0-9]", "", valueSplit[10]))
                 D11 = float(re.sub("[^0-9]", "", valueSplit[11]))
                 
+                #Dados COP
                 P0 = float(re.sub("[^0-9]", "", valueSplit[12]))
                 P1 = float(re.sub("[^0-9]", "", valueSplit[13]))
                 P2 = float(re.sub("[^0-9]", "", valueSplit[14]))
@@ -1193,6 +1325,14 @@ def LerArquivo():
                 Dados_CopX.append(CopX)
                 Dados_CopY.append(CopY)
 
+    dxMax = max(Dados_CopX)
+    dxMin = min(Dados_CopX)
+    dyMax = max(Dados_CopY)
+    dyMin = min(Dados_CopY)
+
+    Dx = dxMax - dxMin
+    Dy = dyMax - dyMin
+    
     lineX = [0, 0, -20, -20, 20, 20, 0]
     lineY = [20, -20, -20, 20, 20, -20, -20]
     ax2.plot(lineX, lineY, color='#A7BBCB')
@@ -1200,14 +1340,36 @@ def LerArquivo():
 
     canvasMatplot2.draw() #Desenha o grafico
 
+    ax4.plot(allData7, color='#304462')
+    ax4.plot(allData8, color='red')
+
+    canvasMatplot4.draw() #Desenha o grafico
+
+
     global dados_velocidade_lista
 
     #MARK: Definindo como 0 para teste sem o teensy
-    Dados_Tempo = 0
-    Dx = 18.82
-    Dy = 7.33
+    Dados_Tempo = 5
 
-    vdcp = Dados_Tempo
+    n = 0
+    Dt = 0
+
+    while n < (len(Dados_CopX))-2:
+
+        x1 = Dados_CopX[(n+1)]
+        x2 = Dados_CopX[((n+1) + 1)]
+
+        y1 = Dados_CopY[(n+1)]
+        y2 = Dados_CopY[((n+1) + 1)]
+
+        d = math.sqrt((x1-x2) **2 + (y1-y2) **2)
+
+        Dt = Dt + d
+
+        n = n + 1
+
+    vdcp = Dt / Dados_Tempo
+
     dados_velocidade_lista = [vdcp, Dx, Dy]
 
     salvar_dados()
@@ -1219,8 +1381,8 @@ btn_avancarResultado = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
@@ -1244,12 +1406,12 @@ canvas_emg.place(relx=0.4688, rely=0.213, anchor='nw')
 #canvas_centro_pressao.create_text(395, 100, text="Centro de Pressão", font=("Arial", 20, "bold"), fill="#000000")
 canvas_distr_massas.create_text(395, 100, text="Distribuição de Massa", font=("Arial", 20, "bold"), fill="#000000")
 #canvas_velocidade.create_text(395, 100, text="Velocidade", font=("Arial", 20, "bold"), fill="#000000")
-canvas_emg.create_text(395, 100, text="EMG", font=("Arial", 20, "bold"), fill="#000000")
+#canvas_emg.create_text(395, 100, text="EMG", font=("Arial", 20, "bold"), fill="#000000")
 
 
 #Botão Pressionado
-width_btn_click = int((screen_width * 12.24) / 100)
-height_btn_click = int((screen_height * 17.6) / 100)
+width_btn_click = int((physical_width * 12.24) / 100)
+height_btn_click = int((physical_height * 17.6) / 100)
 bg_btn_click1 = Image.open("UI/Resultado/btn_clicked.png")
 bg_btn_click1 = bg_btn_click1.resize((width_btn_click, height_btn_click), Image.Resampling.LANCZOS)
 bg_btn_click = ImageTk.PhotoImage(bg_btn_click1)
@@ -1284,9 +1446,9 @@ def exibir_dados_velocidade():
     vdcp, Dx, Dy = dados_velocidade_lista
 
     canvas_velocidade.create_text(canvas_width * 0.5, canvas_height * 0.1, 
-                                text=f"Velocidade do Centro de Pressao: {vdcp}", font=("Inter", fontsize22, "bold"), fill="#304462", anchor = "center")
+                                text=f"Velocidade do Centro de Pressao: {str(round(vdcp,2))} cm/s", font=("Inter", fontsize22, "bold"), fill="#304462", anchor = "center")
     canvas_velocidade.create_text(canvas_width * 0.5, canvas_height * 0.2, 
-                                text=f"DX: {Dx}  |  DY: {Dy}", font=("Inter", fontsize-1), fill="#656565")
+                                text=f"DX: {str(round(Dx,2))}  |  DY: {str(round(Dy,2))}", font=("Inter", fontsize-1), fill="#656565")
 
 # Função para exibir o canvas correto
 def exibir_canvas(canvas):
@@ -1402,8 +1564,8 @@ def salvar_dados():
 
 
 #Background Botões
-width_paciente = int((screen_width * 26.56) / 100)
-height_paciente = int((screen_height * 6.48) / 100)
+width_paciente = int((physical_width * 26.56) / 100)
+height_paciente = int((physical_height * 6.48) / 100)
 bg_btn_paciente1 = Image.open("UI/Resultado/btn_paciente_neutro.png")
 bg_btn_paciente1 = bg_btn_paciente1.resize((width_paciente, height_paciente), Image.Resampling.LANCZOS)
 bg_btn_paciente = ImageTk.PhotoImage(bg_btn_paciente1)
@@ -1412,8 +1574,8 @@ bg_btn_paciente_click1 = Image.open("UI/Resultado/btn_paciente_click.png")
 bg_btn_paciente_click1 = bg_btn_paciente_click1.resize((width_paciente, height_paciente), Image.Resampling.LANCZOS)
 bg_btn_paciente_click = ImageTk.PhotoImage(bg_btn_paciente_click1)
 
-width_btn_resultado = int((screen_width * 12.24) / 100)
-height_btn_resultado = int((screen_height * 17.6) / 100)
+width_btn_resultado = int((physical_width * 12.24) / 100)
+height_btn_resultado = int((physical_height * 17.6) / 100)
 bg_btn_resultado1 = Image.open("UI/Resultado/btn_neutro.png")
 bg_btn_resultado1 = bg_btn_resultado1.resize((width_btn_resultado, height_btn_resultado), Image.Resampling.LANCZOS)
 bg_btn_resultado = ImageTk.PhotoImage(bg_btn_resultado1)
@@ -1509,8 +1671,8 @@ btn_voltarInicial = Button(
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
-    width=((screen_width * 9.9) / 100)-2,
-    height=((screen_height * 9.26) / 100)-2,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
     activeforeground="#f7c360",
