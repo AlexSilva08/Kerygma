@@ -47,8 +47,8 @@ root.grid_columnconfigure(0, weight=1)
 root.attributes("-fullscreen", True)
 
 
-print(dpi, scale_factor,physical_height,physical_width)
-print(screen_height, screen_width)
+#print(dpi, scale_factor,physical_height,physical_width)
+#print(screen_height, screen_width)
 
 # Criação das telas    
 tela_inicial = Frame(root)
@@ -335,16 +335,11 @@ def CarregarPerfil():
 
         if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
             CopX = (P4*DxP4 + P5*DxP5 + P6*DxP6 + P7*DxP7 - P0*DxP0 - P1*DxP1 - P2*DxP2 - P3*DxP3)/(P0+P1+P2+P3+P4+P5+P6+P7)
-        else:
-            CopX = 0
-
+            Dados_CopX.append(CopX)
+        
         if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
             CopY = (P0*DyP0 + P1*DyP1 + P4*DyP4 + P5*DyP5 - P2*DyP2 - P3*DyP3 - P6*DyP6 - P7*DyP7)/(P0+P1+P2+P3+P4+P5+P6+P7)
-        else:
-            CopY = 0
-
-        Dados_CopX.append(CopX)
-        Dados_CopY.append(CopY)
+            Dados_CopY.append(CopY)
 
         allData4.append(D4)
         allData5.append(D5)
@@ -363,8 +358,6 @@ def CarregarPerfil():
     lineY = [20, -20, -20, 20, 20, -20, -20]
     ax2.plot(lineX, lineY, color='#A7BBCB')
     ax2.plot(Dados_CopX, Dados_CopY, color='#304462')
-
-    print("rodou matplot2")
 
     canvasMatplot2.draw() #Desenha o grafico
     
@@ -986,8 +979,6 @@ def ColetarDados():
 
     valueSplit = valueRead.split(b",")
 
-    print(valueRead)
-
     if len(valueSplit) == 20:
 
         P0 = float(valueSplit[12])
@@ -1056,8 +1047,6 @@ def ColetarDados():
     fim = time.time()
     Dados_Tempo = fim - start
 
-    #print(str(Dados_CopX) + " " + str(Dados_CopY) + " " + str(Dados_Tempo))
-
 
 #MARK: TELA CARREGAMENTO ---------------------------------------------------------------------------------------------------------------------------
 
@@ -1072,7 +1061,7 @@ btn_iniciarCarregamento = Button(
     compound="center",
     bd=0,
     activeforeground="#f7c360",
-    command=lambda: ManterColeta()
+    command=lambda: show_frame(tela_carregamento) #Com o teensy mudar para ManterColeta()
 )
 btn_iniciarCarregamento.place(relx=0.7969, rely=0.8611)
 
@@ -1233,10 +1222,8 @@ def LerArquivo():
         Dados = csv.reader(file)
 
         for row in Dados:
-            #print(row)
 
             valueSplit = str(row).split(",")
-            #print(valueSplit)
 
             if len(valueSplit) == 20:
 
@@ -1332,7 +1319,7 @@ def LerArquivo():
     global dados_velocidade_lista
 
     #MARK: Definindo como 0 para teste sem o teensy
-    #Dados_Tempo = 5
+    Dados_Tempo = 5
 
     n = 0
     Dt = 0
