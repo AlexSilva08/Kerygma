@@ -5,6 +5,7 @@ from tkinter import messagebox
 from PIL import Image, ImageTk 
 import customtkinter as ctk
 import boxes
+import validates
 import serial
 import time
 import glob
@@ -37,7 +38,7 @@ dpi = ctypes.windll.shcore.GetScaleFactorForDevice(0)
 scale_factor = dpi / 100
 
 root = ctk.CTk()
-root.title("Nome do Software")
+root.title("EquiSystem K2000")
 screen_width = int(physical_width / scale_factor)
 screen_height = int(physical_height / scale_factor)
 root.geometry(f"{screen_width}x{screen_height}")
@@ -82,6 +83,10 @@ bg_geral1 = Image.open("UI/background.png")
 bg_geral1 = bg_geral1.resize((physical_width, physical_height), Image.LANCZOS)
 bg_geral = ImageTk.PhotoImage(bg_geral1)
 
+bg_inicial1 = Image.open("UI/bg_inicial.png")
+bg_inicial1 = bg_inicial1.resize((physical_width, physical_height), Image.LANCZOS)
+bg_inicial = ImageTk.PhotoImage(bg_inicial1)
+
 bg_dados1 = Image.open("UI/bg_dados.png")
 bg_dados1 = bg_dados1.resize((physical_width, physical_height), Image.LANCZOS)
 bg_dados = ImageTk.PhotoImage(bg_dados1)
@@ -114,11 +119,13 @@ fontsize = int((screen_height * 1.83) / 100)
 
 fontsize14 = int((screen_height * 1.30) / 100)
 
+fontsize22 = int((screen_height * 2) / 100)
+
 #MARK: TELA INICIAL --------------------------------------------------------------------------------------------------------------
 
 canvas_inicial = Canvas(tela_inicial, width=physical_width, height=physical_height)
 canvas_inicial.grid(row=0, column=0)
-canvas_inicial.create_image(0, 0, image=bg_geral, anchor="nw")
+canvas_inicial.create_image(0, 0, image=bg_inicial, anchor="nw")
 
 # Botão de fechar
 btn_fechar = ctk.CTkButton(
@@ -149,12 +156,6 @@ toogle_button = Button(
 toogle_button.place(relx=0.947, rely=0)
 
 # Título
-canvas_inicial.create_text(
-    250, 50,
-    text="Tela Inicial", 
-    font=('Arial', 24, 'bold'), 
-    fill="#3e567c"
-)
 
 # Configuração de Botões Inicial
 btn_iniciar = Button(
@@ -178,54 +179,44 @@ canvas_dados = Canvas(tela_dados, width=physical_width, height=physical_height)
 canvas_dados.grid(row=0, column=0)
 canvas_dados.create_image(0, 0, image=bg_dados, anchor="nw")
 
+# Registra as funções de validação
+validacao_nome = tela_dados.register(validates.validar_nome)
+validacao_idade = tela_dados.register(validates.validar_idade)
+validacao_altura = tela_dados.register(validates.validar_altura)
+validacao_peso = tela_dados.register(validates.validar_peso)
+
 
 # Entradas de dados do paciente
 entradas = []
 
-nome_label = Label(tela_dados, text="Nome:", font=("Inter", 16, "bold"), background="#D1DCE4", fg="#2F2F2F")
-nome_label.place(relx=0.5531, rely=0.2758)
-nome_paciente = ctk.CTkEntry(tela_dados, width=(screen_width *38.28/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
-nome_paciente.place(relx=0.5458, rely=0.3138)
-entradas.append(nome_paciente)
+nome_label = Label(tela_dados, text="Nome:", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+nome_label.place(relx=0.0901, rely=0.2907, anchor= "center")
+nome_paciente = ctk.CTkEntry(tela_dados, width=(screen_width *38.28/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"),
+                             bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12, validate="key", validatecommand=(validacao_nome, "%P"))
+nome_paciente.place(relx=0.2547, rely=0.3391, anchor = "center")
 
-idade_label = Label(tela_dados, text="Idade:", font=("Inter", 16, "bold"), background="#D1DCE4", fg="#2F2F2F")
-idade_label.place(relx=0.5531, rely=0.398)
-idade_paciente = ctk.CTkEntry(tela_dados, width=(screen_width * 18.23/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
-idade_paciente.place(relx=0.5458, rely=0.4306)
-entradas.append(idade_paciente)
+idade_label = Label(tela_dados, text="Idade:", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+idade_label.place(relx=0.0891, rely=0.4431, anchor = "center")
+idade_paciente = ctk.CTkEntry(tela_dados, width=(screen_width * 18.23/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"),
+                              bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12, validate="key", validatecommand=(validacao_idade, "%P"))
+idade_paciente.place(relx=0.1542, rely=0.4965, anchor = "center")
 
-altura_label = Label(tela_dados, text="Altura:", font=("Inter", 16, "bold"), background="#D1DCE4", fg="#2F2F2F")
-altura_label.place(relx=0.7573, rely=0.398)
-altura_paciente = ctk.CTkEntry(tela_dados, width=(screen_width *18.23/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
-altura_paciente.place(relx=0.7464, rely=0.4306)
-entradas.append(altura_paciente)
+altura_label = Label(tela_dados, text="Altura:", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+altura_label.place(relx=0.2943, rely=0.4431, anchor = "center")
+altura_paciente = ctk.CTkEntry(tela_dados, width=(screen_width *18.23/100), height=(screen_height * 6.02/100),fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"),
+                               bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12, validate="key", validatecommand=(validacao_altura, "%P"))
+altura_paciente.place(relx=0.3547, rely=0.4965, anchor = "center")
 
-peso_label = Label(tela_dados, text="Peso:", font=("Inter", 16, "bold"), background="#D1DCE4", fg="#2F2F2F")
-peso_label.place(relx=0.5531, rely=0.514)
-peso_paciente = ctk.CTkEntry(tela_dados,width=(screen_width *18.23/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"), bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12)
-peso_paciente.place(relx=0.5458, rely=0.5463)
-entradas.append(peso_paciente)
-
-btn_armazenardados = Button(
-    tela_dados,
-    text="Cadastrar",
-    font=("Inter", fontsize,"bold"),
-    fg="#E0E0E0",
-    image=bg_btn,
-    width=((physical_width * 9.9) / 100)-2,
-    height=((physical_height * 9.26) / 100)-2,
-    compound="center",
-    bd=0,
-    activeforeground="#f7c360",
-    bg="#D1DCE4",
-    command=lambda: armazenar_dados()
-)
-btn_armazenardados.place(relx=0.6729, rely=0.6778)
+peso_label = Label(tela_dados, text="Peso:", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+peso_label.place(relx=0.0870, rely=0.6003, anchor = "center")
+peso_paciente = ctk.CTkEntry(tela_dados,width=(screen_width *18.23/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", 16, "bold"),
+                             bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12, validate="key", validatecommand=(validacao_peso, "%P"))
+peso_paciente.place(relx=0.1542, rely=0.6527, anchor = "center")
 
 seta_comboboxPil = Image.open("UI/seta_combobox.png")
 img_seta = ctk.CTkImage(dark_image=seta_comboboxPil, light_image=seta_comboboxPil, size=(18, 12))
-sexo_label = Label(tela_dados, text="Sexo:", font=("Inter", 16, "bold"), background="#D1DCE4", fg="#2F2F2F")
-sexo_label.place(relx=0.7573, rely=0.514)
+sexo_label = Label(tela_dados, text="Sexo:", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+sexo_label.place(relx=0.2911, rely=0.6003, anchor = "center")
 sexo_paciente = boxes.CustomComboBox(
     tela_dados,
     values=["Feminino", "Masculino", "Outro"],
@@ -244,20 +235,248 @@ sexo_paciente = boxes.CustomComboBox(
     corner_radius=12,
     bg_color="#D1DCE4"
     )
-sexo_paciente.place(relx=0.7464, rely=0.5463)
-entradas.append(sexo_paciente)
+sexo_paciente.place(relx=0.3547, rely=0.6527, anchor = "center")
 
+def radio_selection(variable, entry, place_holder):
+    # Obtém o valor atual da variável
+    value = variable.get()
+
+    if value == "1":  # Verifica se o valor é "1" (Sim)
+        if variable == var_dor:  # Verifica qual variável está ativa
+            print("passou dor")
+            place_holder.place(relx=0.5, rely=0.5, anchor="center")
+            entry.place(relx=0.8266, rely=0.3463, anchor = "center")
+            entradas.append(dor_entrada)
+        elif variable == var_queda:
+            print("passou queda")
+            place_holder.place(relx=0.5, rely=0.5, anchor="center")
+            entry.place(relx=0.8266, rely=0.5037, anchor="center")
+            entradas.append(queda_entrada)
+        elif variable == var_labirintite:
+            print("passou lab")
+            place_holder.place(relx=0.5, rely=0.5, anchor="center")
+            entry.place(relx=0.8266, rely=0.6630, anchor = "center")
+            entradas.append(labirintite_entrada)
+    else:  # Se não for "1" (Sim), remove a entrada
+        print("passou else")
+        entry.place_forget()
+        place_holder.place_forget()  # Remove a entrada da tela
+
+# Anamnese
+
+# Inicialização das variáveis
+var_dor = StringVar(value="2")  # Default: Não
+var_queda = StringVar(value="2")  # Default: Não
+var_labirintite = StringVar(value="2")  # Default: Não
+
+# Inicialização das verificações
+validacao_dor = tela_dados.register(lambda valor: validates.validar_dor(valor, dor_placeholder))
+validacao_queda = tela_dados.register(lambda valor: validates.validar_queda(valor, queda_placeholder))
+validacao_labirintite = tela_dados.register(lambda valor: validates.validar_labirintite(valor, labirintite_placeholder))
+
+# Dor
+dor_label = Label(tela_dados, text="Tem dor?", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+dor_label.place(relx=0.5698, rely=0.2917, anchor = "center")
+
+radio_dor_nao = ctk.CTkRadioButton(
+        tela_dados,
+        width=(screen_width * 1.3)/100,
+        height=(screen_width * 1.3)/100,
+        text="",
+        variable=var_dor,
+        value=2,
+        fg_color="#0b2243",
+        border_color="#577B8E",
+        bg_color="#D1DCE4",
+        border_width_checked=(screen_width * 0.41)/100,
+        command=lambda: radio_selection(var_dor, dor_entrada, dor_placeholder)
+        )
+radio_dor_nao.place(relx= 0.5495, rely = 0.3463, anchor = 'center')
+
+radio_dor_sim = ctk.CTkRadioButton(
+        tela_dados,
+        width=(screen_width * 1.3)/100,
+        height=(screen_width * 1.3)/100,
+        text="",
+        variable=var_dor,
+        value=1,
+        fg_color="#0b2243",
+        border_color="#577B8E",
+        bg_color="#D1DCE4",
+        border_width_checked=(screen_width * 0.41)/100,
+        command=lambda: radio_selection(var_dor, dor_entrada, dor_placeholder)
+        )
+radio_dor_sim.place(relx= 0.6708, rely = 0.3463, anchor = 'center')
+
+dor_nao_label = Label(tela_dados, text="NÃO", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+dor_nao_label.place(relx= 0.5776, rely = 0.3463, anchor = 'center')
+
+dor_sim_label = Label(tela_dados, text="SIM", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+dor_sim_label.place(relx= 0.6944, rely = 0.3463, anchor = 'center')
+
+dor_entrada = ctk.CTkEntry(tela_dados, width=(screen_width * 19.79/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", fontsize, "bold"),bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12,
+    validate="key", validatecommand=(validacao_dor, "%P"))
+
+# Queda
+queda_label = Label(tela_dados, text="Evento de queda no último ano?", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+queda_label.place(relx=0.6380, rely=0.45, anchor = 'center')
+
+radio_queda_nao = ctk.CTkRadioButton(
+        tela_dados,
+        width=(screen_width * 1.3)/100,
+        height=(screen_width * 1.3)/100,
+        text="",
+        variable=var_queda,
+        value=2,  # Corrigindo o índice para sempre ser sequencial
+        fg_color="#0b2243",
+        border_color="#577B8E",
+        bg_color="#D1DCE4",
+        border_width_checked=(screen_width * 0.41)/100,
+        command=lambda: radio_selection(var_queda, queda_entrada, queda_placeholder)
+        )
+radio_queda_nao.place(relx= 0.5495, rely=0.5037, anchor = "center")
+
+radio_queda_sim = ctk.CTkRadioButton(
+        tela_dados,
+        width=(screen_width * 1.3)/100,
+        height=(screen_width * 1.3)/100,
+        text="",
+        variable=var_queda,
+        value=1,  # Corrigindo o índice para sempre ser sequencial
+        fg_color="#0b2243",
+        border_color="#577B8E",
+        bg_color="#D1DCE4",
+        border_width_checked=(screen_width * 0.41)/100,
+        command=lambda: radio_selection(var_queda, queda_entrada, queda_placeholder)
+        )
+radio_queda_sim.place(relx= 0.6708, rely=0.5037, anchor = "center")
+
+queda_nao_label = Label(tela_dados, text="NÃO", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+queda_nao_label.place(relx= 0.5776, rely=0.5037, anchor = "center")
+
+queda_sim_label = Label(tela_dados, text="SIM", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+queda_sim_label.place(relx= 0.6944, rely=0.5037, anchor = "center")
+
+queda_entrada = ctk.CTkEntry(tela_dados, width=(screen_width * 19.79/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", fontsize, "bold"),bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12,
+    validate="key", validatecommand=(validacao_queda, "%P"))
+
+# Labirintite
+labirintite_label = Label(tela_dados, text="Crise de labirintite no último mês?", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+labirintite_label.place(relx=0.6438, rely=0.6093, anchor = 'center')
+
+radio_labirintite_nao = ctk.CTkRadioButton(
+        tela_dados,
+        width=(screen_width * 1.3)/100,
+        height=(screen_width * 1.3)/100,
+        text="",
+        variable=var_labirintite,
+        value=2,  # Corrigindo o índice para sempre ser sequencial
+        fg_color="#0b2243",
+        border_color="#577B8E",
+        bg_color="#D1DCE4",
+        border_width_checked=(screen_width * 0.41)/100,
+        command=lambda: radio_selection(var_labirintite, labirintite_entrada, labirintite_placeholder)
+        )
+radio_labirintite_nao.place(relx= 0.5495, rely = 0.6630, anchor = "center")
+
+radio_labirintite_sim = ctk.CTkRadioButton(
+        tela_dados,
+        width=(screen_width * 1.3)/100,
+        height=(screen_width * 1.3)/100,
+        text="",
+        variable=var_labirintite,
+        value=1,  # Corrigindo o índice para sempre ser sequencial
+        fg_color="#0b2243",
+        border_color="#577B8E",
+        bg_color="#D1DCE4",
+        border_width_checked=(screen_width * 0.41)/100,
+        command=lambda: radio_selection(var_labirintite, labirintite_entrada, labirintite_placeholder)
+        )
+radio_labirintite_sim.place(relx= 0.6708, rely = 0.6630, anchor = "center")
+
+labirintite_nao_label = Label(tela_dados, text="NÃO", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+labirintite_nao_label.place(relx= 0.5776, rely = 0.6630, anchor = "center")
+
+labirintite_sim_label = Label(tela_dados, text="SIM", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+labirintite_sim_label.place(relx= 0.6944, rely = 0.6630, anchor = "center")
+
+labirintite_entrada = ctk.CTkEntry(tela_dados, width=(screen_width * 19.79/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", fontsize, "bold"),bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12,
+    validate="key", validatecommand=(validacao_labirintite, "%P"))
+
+queda_placeholder = Label(queda_entrada, text="Quantos?", font=("Inter", fontsize, "bold"), background="#FFFFFF", fg="#CDCDCD")
+dor_placeholder = Label(dor_entrada, text="Qual nível? (0 a 10)", font=("Inter", fontsize, "bold"), background="#FFFFFF", fg="#CDCDCD")
+labirintite_placeholder = Label(labirintite_entrada, text="Qual tratamento utilizado?", font=("Inter", fontsize, "bold"), background="#FFFFFF", fg="#CDCDCD")
 
 # Função para armazenar os dados em uma lista
+global dados_paciente_lista
 dados_paciente_lista = []
 dados_velocidade_lista = []
 
 def armazenar_dados():
-    global dados_paciente_lista
-    dados_paciente_lista = [entrada.get() for entrada in entradas]
-    for entrada in entradas:
-        entrada.delete(0, END)
+    # Dados básicos
+    nome = nome_paciente.get().strip()
+    idade = idade_paciente.get().strip()
+    altura = altura_paciente.get().strip()
+    peso = peso_paciente.get().strip()
+    sexo = sexo_paciente.get().strip()
 
+    # Coleta de respostas da Anamnese
+    tem_dor = "Sim" if var_dor.get() == "1" else "Não"
+    nivel_dor = dor_entrada.get().strip() if tem_dor == "Sim" else ""
+
+    tem_queda = "Sim" if var_queda.get() == "1" else "Não"
+    qtd_quedas = queda_entrada.get().strip() if tem_queda == "Sim" else ""
+
+    tem_labirintite = "Sim" if var_labirintite.get() == "1" else "Não"
+    tratamento_labirintite = labirintite_entrada.get().strip() if tem_labirintite == "Sim" else ""
+
+    # Verificação dos campos obrigatórios
+    if not all([nome, idade, altura, peso, sexo]):
+        messagebox.showwarning("Atenção", "Preencha todos os campos obrigatórios!")
+        return
+    
+    # Verificação das entradas condicionais
+    if tem_dor == "Sim" and not nivel_dor:
+        messagebox.showwarning("Atenção", "Você marcou que tem dor, mas não especificou o nível da dor!")
+        return
+    if tem_queda == "Sim" and not qtd_quedas:
+        messagebox.showwarning("Atenção", "Você marcou que teve queda, mas não especificou a quantidade de quedas!")
+        return
+    if tem_labirintite == "Sim" and not tratamento_labirintite:
+        messagebox.showwarning("Atenção", "Você marcou que tem labirintite, mas não especificou o tratamento!")
+        return
+
+    # Lista com todos os dados organizados
+    dados_paciente_lista = [
+        nome, idade, altura, peso, sexo,  # Dados básicos
+        tem_dor, nivel_dor,               # Dados sobre dor
+        tem_queda, qtd_quedas,            # Dados sobre quedas
+        tem_labirintite, tratamento_labirintite  # Dados sobre labirintite
+    ]
+
+    # Resetando os checkboxes e entradas condicionais
+    var_dor.set(0)
+    var_queda.set(0)
+    var_labirintite.set(0)
+
+    dor_entrada.place_forget()
+    queda_entrada.place_forget()
+    labirintite_entrada.place_forget()
+
+    dor_entrada.delete(0, "end")
+    queda_entrada.delete(0, "end")
+    labirintite_entrada.delete(0, "end")
+
+    nome_paciente.delete(0, "end")
+    altura_paciente.delete(0, "end")
+    peso_paciente.delete(0, "end")
+    idade_paciente.delete(0, "end")
+    sexo_paciente.reset_button_text()
+
+    messagebox.showinfo("Sucesso", "Dados cadastrados com sucesso!")
+    print("Dados salvos:", dados_paciente_lista)  # Apenas para verificar
+    show_frame(tela_parametros)
+    return dados_paciente_lista
 
 #MARK: Carregar perfil
 def CarregarPerfil():
@@ -378,7 +597,7 @@ def dados_paciente(tela):
 # Botões tela dados
 btn_lerArquivo = Button(
     tela_dados,
-    text="LER\nARQUIVO",
+    text="LER\nARQUIVO", 
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
@@ -402,7 +621,7 @@ btn_avancarDados = Button(
     compound="center",
     bd=0,
     activeforeground="#f7c360",
-    command=lambda: show_frame(tela_parametros)
+    command=lambda: armazenar_dados()
 )
 btn_avancarDados.place(relx=0.7969, rely=0.8611)
 
@@ -1368,9 +1587,7 @@ canvas_distr_massas.place(relx=0.4688, rely=0.213, anchor='nw')
 canvas_velocidade.place(relx=0.4688, rely=0.213, anchor='nw')
 canvas_emg.place(relx=0.4688, rely=0.213, anchor='nw')
 
-
 # Conteudo Painel PACIENTE
-
 
 #Botão Pressionado
 width_btn_click = int((physical_width * 12.24) / 100)
@@ -1379,7 +1596,7 @@ bg_btn_click1 = Image.open("UI/Resultado/btn_clicked.png")
 bg_btn_click1 = bg_btn_click1.resize((width_btn_click, height_btn_click), Image.Resampling.LANCZOS)
 bg_btn_click = ImageTk.PhotoImage(bg_btn_click1)
 
-fontsize22 = int((screen_height * 2) / 100)
+
 
 #MARK: Exibir dados()
 def exibir_dados_paciente():
@@ -1389,8 +1606,8 @@ def exibir_dados_paciente():
     canvas_width = canvas_paciente.winfo_width()
     canvas_height = canvas_paciente.winfo_height()
 
-    # Suponha que `dados_paciente_lista` contenha [nome, idade, altura, peso]
-    nome, idade, altura, peso, sexo = dados_paciente_lista
+    # Suponha que `dados_paciente_lista` contenha [nome, idade, altura, peso, sexo ]
+    nome, idade, altura, peso, sexo, tem_dor, nivel_dor, tem_queda, qtd_quedas, tem_labirintite, tratamento_labirintite  = dados_paciente_lista
 
     # Posiciona cada texto usando valores relativos, sem armazenar coordenadas em variáveis
     canvas_paciente.create_text(canvas_width * 0.5, canvas_height * 0.1, 
