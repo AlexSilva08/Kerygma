@@ -186,5 +186,9 @@ class CustomComboBox:
         self.button.configure(text=value)
         self.toggle_dropdown()
 
+    def reset_button_text(self):
+        self.button.configure(text="Escolha uma opção")
+        
     def get(self):
         return self.button.cget("text")
+    
