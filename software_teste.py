@@ -25,7 +25,6 @@ import os
 import csv
 import re
 import ctypes
-import pyautogui
 import textwrap
 
 
@@ -483,6 +482,7 @@ dados_paciente_lista = []
 dados_velocidade_lista = []
 
 def armazenar_dados():
+    global dados_paciente_lista
     # Dados básicos
     nome = nome_paciente.get().strip()
     idade = idade_paciente.get().strip()
@@ -492,13 +492,13 @@ def armazenar_dados():
 
     # Coleta de respostas da Anamnese
     tem_dor = "Sim" if var_dor.get() == "1" else "Não" if var_dor.get() == "2" else ""
-    nivel_dor = dor_entrada.get().strip() if tem_dor == "Sim" else ""
+    nivel_dor = dor_entrada.get().strip() if tem_dor == "Sim" else "0"
 
     tem_queda = "Sim" if var_queda.get() == "1" else "Não" if var_queda.get() == "2" else ""
-    qtd_quedas = queda_entrada.get().strip() if tem_queda == "Sim" else ""
+    qtd_quedas = queda_entrada.get().strip() if tem_queda == "Sim" else "0"
 
     tem_labirintite = "Sim" if var_labirintite.get() == "1" else "Não" if var_labirintite.get() == "2" else ""
-    tratamento_labirintite = labirintite_entrada.get().strip() if tem_labirintite == "Sim" else ""
+    tratamento_labirintite = labirintite_entrada.get().strip() if tem_labirintite == "Sim" else "Nenhum"
 
     # Verificação dos campos obrigatórios
     if not all([nome, idade, altura, peso, sexo, tem_dor, tem_queda, tem_labirintite]):
@@ -574,6 +574,12 @@ def CarregarPerfil():
     altura_paciente = Dados.Altura[0]
     peso_paciente = Dados.Peso[0]
     sexo_paciente = Dados.Sexo[0]
+    tem_dor = Dados.Dor[0]
+    nivel_dor = Dados.Nivel_da_dor[0]
+    tem_queda = Dados.Queda[0]
+    qtd_quedas = Dados.Quantidade_de_quedas[0]
+    tem_labirintite = Dados.Labirintite[0]
+    tratamento_labirintite = Dados.Tratamento_de_labirintite[0]
     vdcp = Dados.Tempo[0]
     Dx = Dados.Dx[0]
     Dy = Dados.Dy[0]
@@ -651,7 +657,7 @@ def CarregarPerfil():
     canvasMatplot2.draw() #Desenha o grafico
     
     global dados_paciente_lista
-    dados_paciente_lista = [nome_paciente, idade_paciente, altura_paciente, peso_paciente, sexo_paciente]
+    dados_paciente_lista = [nome_paciente, idade_paciente, altura_paciente, peso_paciente, sexo_paciente, tem_dor, nivel_dor, tem_queda, qtd_quedas, tem_labirintite, tratamento_labirintite]
 
     global dados_velocidade_lista
     dados_velocidade_lista = [vdcp, Dx, Dy]
@@ -1719,7 +1725,7 @@ btn_avancarResultado = Button(
     bd=0,
     activeforeground="#f7c360",
     #MARK: Botão para carregar o arquivo do excel
-    command=lambda: show_frame(tela_resultado)
+    command=lambda: LerArquivo()
 )
 btn_avancarResultado.place(relx=0.7969, rely=0.8611)
 
@@ -1944,6 +1950,12 @@ def salvar_dados():
     altura = dados_paciente_lista[2]
     peso = dados_paciente_lista[3]
     sexo = dados_paciente_lista[4]
+    tem_dor = dados_paciente_lista[5]
+    nivel_dor = dados_paciente_lista[6]
+    tem_queda = dados_paciente_lista[7]
+    qtd_quedas = dados_paciente_lista[8]
+    tem_labirintite = dados_paciente_lista[9]
+    tratamento_labirintite = dados_paciente_lista[10]
 
     data = {
         'Nome': nome,
@@ -1951,6 +1963,12 @@ def salvar_dados():
         'Altura': altura,
         'Peso': peso,
         'Sexo': sexo,
+        'Dor': tem_dor,
+        'Nivel_da_dor': nivel_dor,
+        'Queda': tem_queda,
+        'Quantidade_de_quedas': qtd_quedas,
+        'Labirintite': tem_labirintite,
+        'Tratamento_de_labirintite': tratamento_labirintite,
         'D0': allData0,
         'D1': allData1,
         'D2': allData2,
