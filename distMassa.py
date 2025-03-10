@@ -8,8 +8,8 @@ import random
 def plot():
     ax.clear() #Limpa o grafico
 
-    nLinhas = 9
-    nColunas = 9
+    nLinhas = 3
+    nColunas = 3
     
 
     
