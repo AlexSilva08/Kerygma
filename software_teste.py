@@ -26,6 +26,7 @@ import csv
 import re
 import ctypes
 import textwrap
+import pyautogui
 
 
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
@@ -765,6 +766,8 @@ bg_btn_adc1 = Image.open("UI/Parametros/btn_adc-rmv.png")
 bg_btn_adc1 = bg_btn_adc1.resize((width_bg_adc, height_bg_adc), Image.Resampling.LANCZOS)
 bg_btn_adc = ImageTk.PhotoImage(bg_btn_adc1)
 
+
+
 #MARK: CANVAS MOVIMENTAÇÃO -------------------------
 canvas_movimentacao = Canvas(
     tela_parametros,
@@ -988,6 +991,28 @@ def radio_button(value):
     else:
         print(f"Erro: Índice {index_radio} fora do intervalo!")
     
+#CONFIGURAÇÃO DO GIF
+
+def play_gif(label, gif_path, size=(300, 300)):  # Define o tamanho desejado
+    img = Image.open(gif_path)
+    frames = []
+
+    try:
+        while True:
+            resized_frame = img.copy().resize(size)  # Redimensiona o frame
+            frames.append(ImageTk.PhotoImage(resized_frame))
+            img.seek(len(frames))  # Avança para o próximo frame
+    except EOFError:
+        pass  # Final da sequência de frames
+
+    def update(ind):
+        frame = frames[ind]
+        label.configure(image=frame)
+        label.image = frame
+        ind = (ind + 1) % len(frames)  # Loop infinito
+        label.after(30, update, ind)  # Atualiza o frame a cada 100ms
+
+    update(0)  # Inicia a animação
 
 def mostrar_movimentacao():
     canvas_movimentacao.place(relx=0.3453,rely=0.3491,anchor="nw")  # Exibe o canvas de movimentação
@@ -1099,10 +1124,16 @@ def configurar_canvas_movimentacao():
     compound="center",
     bd=0,
     activeforeground="#f7c360",
+    background="#E0E7EC", 
     command= confirmar_mov
     #comando do botão precisa ter o get e o .append(matriz_parametros[index_selecionado][posição])
     )
     btn_confirmar_mov.place(relx=0.6655, rely=0.8854, anchor='center')
+
+    label_gif_mov = Label(canvas_movimentacao, borderwidth=5, bg="#A7BBCB")
+    label_gif_mov.place(relx=0.1991, rely=0.52, anchor="center")
+
+    play_gif(label_gif_mov, "UI/GIF/gif_mov.gif", size = (300, 300))
 
 
 def configurar_canvas_oscilacao():
@@ -1202,10 +1233,17 @@ def configurar_canvas_oscilacao():
     compound="center",
     bd=0,
     activeforeground="#f7c360",
+    background="#E0E7EC",
     command= confirmar_osc
     #comando do botão precisa ter o get e o .append(matriz_parametros[index_selecionado][posição])
     )
     btn_confirmar_osc.place(relx=0.6655, rely=0.8854, anchor='center')
+
+    label_gif_osc = Label(canvas_oscilacao, borderwidth=5, bg="#A7BBCB")
+    label_gif_osc.place(relx=0.1991, rely=0.52, anchor="center")
+
+    play_gif(label_gif_osc, "UI/GIF/gif_osc.gif", size = (300, 300))
+
 
 def limpar_widgets():
     global combobox_criada, frames_widgets
@@ -1810,19 +1848,19 @@ def exibir_dados_paciente():
                                 text=f"{nivel_dor}", font=("Inter", fontsize22+12, "bold"), fill="#0B2243")
     else:
         canvas_paciente.create_text(canvas_width * 0.267, canvas_height * 0.54, 
-                                text=f"SEM DOR", font=("Inter", fontsize22+6, "bold"), fill="#0B2243")
+                                text=f"SEM DOR", font=("Inter", fontsize22+2, "bold"), fill="#0B2243")
     
         
-    canvas_paciente.create_text(canvas_width * 0.267, canvas_height * 0.708, 
+    canvas_paciente.create_text(canvas_width * 0.267, canvas_height * 0.715, 
                                 text="EVENTOS DE QUEDA", font=("Inter", fontsize22, "bold"), fill="#5D6673", anchor = 'center')
-    canvas_paciente.create_text(canvas_width * 0.267, canvas_height * 0.753, 
+    canvas_paciente.create_text(canvas_width * 0.267, canvas_height * 0.761, 
                                 text="NO ÚLTIMO ANO", font=("Inter", fontsize22, "bold"), fill="#5D6673", anchor = 'center')
     if tem_queda == "Sim":
         canvas_paciente.create_text(canvas_width * 0.267, canvas_height * 0.84, 
                                 text=f"{qtd_quedas}", font=("Inter", fontsize22+12, "bold"), fill="#0B2243")
     else:
         canvas_paciente.create_text(canvas_width * 0.267, canvas_height * 0.84, 
-                                text=f"Nenhum", font=("Inter", fontsize22+6, "bold"), fill="#0B2243")
+                                text=f"Nenhum", font=("Inter", fontsize22+2, "bold"), fill="#0B2243")
 
 
 
