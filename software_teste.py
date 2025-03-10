@@ -26,7 +26,6 @@ import csv
 import re
 import ctypes
 import textwrap
-import pyautogui
 
 
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
