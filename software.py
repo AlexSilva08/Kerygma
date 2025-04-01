@@ -25,10 +25,12 @@ import os
 import csv
 import re
 import ctypes
-import pyautogui
 import textwrap
+import pyautogui
+from screeninfo import get_monitors
 
 
+# Ajuste de DPI
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
 # Resolução física e escala de DPI
@@ -39,6 +41,16 @@ physical_height = user32.GetSystemMetrics(1)
 dpi = ctypes.windll.shcore.GetScaleFactorForDevice(0)
 scale_factor = dpi / 100
 
+# Obtendo monitores
+monitors = get_monitors()
+if len(monitors) < 2:
+    print("É necessário pelo menos dois monitores.")
+    exit()
+
+monitor1 = monitors[1]
+monitor2 = monitors[0]  # Segundo monitor
+
+# Criando a Janela Principal (Monitor 1)
 root = ctk.CTk()
 root.title("EquiSystem K2000")
 screen_width = int(physical_width / scale_factor)
@@ -53,16 +65,27 @@ root.iconbitmap("UI/icon.ico")
 myappid = "K2000.V1"
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
-#print(dpi, scale_factor,physical_height,physical_width)
-#print(screen_height, screen_width)
+# Criando a Janela Secundária (Monitor 2)
+second_window = ctk.CTkToplevel(root)
+second_window.geometry(f"{monitor2.width}x{monitor2.height}+{monitor2.x}+{monitor2.y}")
+second_window.overrideredirect(True)  # Remove bordas da janela
+second_window.attributes("-topmost", True)  # Mantém a janela sempre no topo
 
-# Criação das telas    
-tela_inicial = Frame(root)
-tela_dados = Frame(root)
-tela_parametros = Frame(root)
-tela_anamnese = Frame(root)
-tela_resultado = Frame(root)
-tela_carregamento = Frame(root)
+# Carregar a imagem de fundo para o segundo monitor
+bg_inicial1 = Image.open("UI/bg_inicial.png")
+bg_inicial1 = bg_inicial1.resize((monitor2.width, monitor2.height), Image.LANCZOS)
+bg_inicial = ImageTk.PhotoImage(bg_inicial1)
+
+bg_label = ctk.CTkLabel(second_window, image=bg_inicial, text="")
+bg_label.pack(fill="both", expand=True)
+
+# Criando as telas do software principal
+tela_inicial = ctk.CTkFrame(root)
+tela_dados = ctk.CTkFrame(root)
+tela_parametros = ctk.CTkFrame(root)
+tela_anamnese = ctk.CTkFrame(root)
+tela_resultado = ctk.CTkFrame(root)
+tela_carregamento = ctk.CTkFrame(root)
 
 # Função para trazer a tela pra frente
 def show_frame(frame): 
@@ -71,17 +94,12 @@ def show_frame(frame):
 def close_app():
     root.destroy()
 
-is_fullscreen = True
-def toogle_fullscreen():
-    global is_fullscreen
-    is_fullscreen = not is_fullscreen
-    root.attributes("-fullscreen", is_fullscreen)
-
-# For para posicionamento das telas
+# Posicionando as telas
 for frame in (tela_inicial, tela_dados, tela_parametros, tela_resultado, tela_anamnese, tela_carregamento): 
     frame.grid(row=0, column=0, sticky='nsew')
 
 show_frame(tela_inicial)
+#show_frame(tela_parametros)
 
 #Background Telas
 bg_geral1 = Image.open("UI/background.png")
@@ -112,9 +130,9 @@ bg_resultado1 = Image.open("UI/Resultado/bg_resultado.png")
 bg_resultado1 = bg_resultado1.resize((physical_width, physical_height), Image.LANCZOS)
 bg_resultado = ImageTk.PhotoImage(bg_resultado1)
 
-#Bg botão geral
-width_bg_btn = int((physical_width * 9.9) / 100)
-height_bg_btn = int((physical_height * 9.26) / 100)
+#Bg botão geral 
+width_bg_btn = int((physical_width * 9.9) / 100) 
+height_bg_btn = int((physical_height * 9.26) / 100) 
 bg_btn1 = Image.open("UI/bg_btn.png")
 bg_btn1 = bg_btn1.resize((width_bg_btn, height_bg_btn), Image.Resampling.LANCZOS)
 bg_btn = ImageTk.PhotoImage(bg_btn1)
@@ -151,18 +169,6 @@ btn_fechar = Button(
 )
 btn_fechar.place(relx=0.975, rely=-0.05)
 
-# Icone de fullscreen
-icon_fullscreen = Image.open("UI/icon_fullscreen.png").resize((40, 40), Image.LANCZOS)
-icon_fullscreen = ImageTk.PhotoImage(icon_fullscreen)
-toogle_button = Button(
-    tela_inicial,
-    image=icon_fullscreen,
-    bd=0,
-    highlightthickness=0,
-    command=toogle_fullscreen,
-    bg="white"
-)
-toogle_button.place(relx=0.947, rely=0)
 
 # Título
 
@@ -301,22 +307,18 @@ def radio_selection(variable, entry, place_holder):
 
     if value == "1":  # Verifica se o valor é "1" (Sim)
         if variable == var_dor:  # Verifica qual variável está ativa
-            print("passou dor")
             place_holder.place(relx=0.5, rely=0.5, anchor="center")
-            entry.place(relx=0.8266, rely=0.3463, anchor = "center")
+            entry.place(relx=0.8266, rely=0.3093, anchor = "center")
             entradas.append(dor_entrada)
         elif variable == var_queda:
-            print("passou queda")
             place_holder.place(relx=0.5, rely=0.5, anchor="center")
-            entry.place(relx=0.8266, rely=0.5037, anchor="center")
+            entry.place(relx=0.8266, rely=0.4463, anchor="center")
             entradas.append(queda_entrada)
         elif variable == var_labirintite:
-            print("passou lab")
             place_holder.place(relx=0.5, rely=0.5, anchor="center")
-            entry.place(relx=0.8266, rely=0.6630, anchor = "center")
+            entry.place(relx=0.8266, rely=0.5843, anchor = "center")
             entradas.append(labirintite_entrada)
     else:  # Se não for "1" (Sim), remove a entrada
-        print("passou else")
         entry.place_forget()
         place_holder.place_forget()  # Remove a entrada da tela
 
@@ -326,6 +328,7 @@ def radio_selection(variable, entry, place_holder):
 var_dor = StringVar()  # Default: Não
 var_queda = StringVar()  # Default: Não
 var_labirintite = StringVar()  # Default: Não
+var_membroDom = StringVar()
 
 # Inicialização das verificações
 validacao_dor = tela_dados.register(lambda valor: validates.validar_dor(valor, dor_placeholder))
@@ -334,7 +337,7 @@ validacao_labirintite = tela_dados.register(lambda valor: validates.validar_labi
 
 # Dor
 dor_label = Label(tela_dados, text="Tem dor?", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
-dor_label.place(relx=0.5698, rely=0.2917, anchor = "center")
+dor_label.place(relx=0.5698, rely=0.2546, anchor = "center")
 
 radio_dor_nao = ctk.CTkRadioButton(
         tela_dados,
@@ -349,7 +352,7 @@ radio_dor_nao = ctk.CTkRadioButton(
         border_width_checked=(screen_width * 0.41)/100,
         command=lambda: radio_selection(var_dor, dor_entrada, dor_placeholder)
         )
-radio_dor_nao.place(relx= 0.5495, rely = 0.3463, anchor = 'center')
+radio_dor_nao.place(relx= 0.5495, rely = 0.3093, anchor = 'center')
    
 radio_dor_sim = ctk.CTkRadioButton(
         tela_dados,
@@ -364,13 +367,13 @@ radio_dor_sim = ctk.CTkRadioButton(
         border_width_checked=(screen_width * 0.41)/100,
         command=lambda: radio_selection(var_dor, dor_entrada, dor_placeholder)
         )
-radio_dor_sim.place(relx= 0.6708, rely = 0.3463, anchor = 'center')
+radio_dor_sim.place(relx= 0.6708, rely = 0.3093, anchor = 'center')
 
 dor_nao_label = Label(tela_dados, text="NÃO", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
-dor_nao_label.place(relx= 0.5776, rely = 0.3463, anchor = 'center')
+dor_nao_label.place(relx= 0.5776, rely = 0.3093, anchor = 'center')
 
 dor_sim_label = Label(tela_dados, text="SIM", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
-dor_sim_label.place(relx= 0.6944, rely = 0.3463, anchor = 'center')
+dor_sim_label.place(relx= 0.6944, rely = 0.3093, anchor = 'center')
 
 dor_entrada = ctk.CTkEntry(tela_dados, width=(screen_width * 19.79/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", fontsize, "bold"),bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12,
     validate="key", validatecommand=(validacao_dor, "%P"))
@@ -381,7 +384,7 @@ dor_entrada.bind("<FocusOut>", on_focus_out)
 
 # Queda
 queda_label = Label(tela_dados, text="Evento de queda no último ano?", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
-queda_label.place(relx=0.6380, rely=0.45, anchor = 'center')
+queda_label.place(relx=0.6380, rely=0.3926, anchor = 'center')
 
 radio_queda_nao = ctk.CTkRadioButton(
         tela_dados,
@@ -396,7 +399,7 @@ radio_queda_nao = ctk.CTkRadioButton(
         border_width_checked=(screen_width * 0.41)/100,
         command=lambda: radio_selection(var_queda, queda_entrada, queda_placeholder)
         )
-radio_queda_nao.place(relx= 0.5495, rely=0.5037, anchor = "center")
+radio_queda_nao.place(relx= 0.5495, rely=0.4463, anchor = "center")
 
 radio_queda_sim = ctk.CTkRadioButton(
         tela_dados,
@@ -411,13 +414,13 @@ radio_queda_sim = ctk.CTkRadioButton(
         border_width_checked=(screen_width * 0.41)/100,
         command=lambda: radio_selection(var_queda, queda_entrada, queda_placeholder)
         )
-radio_queda_sim.place(relx= 0.6708, rely=0.5037, anchor = "center")
+radio_queda_sim.place(relx= 0.6708, rely=0.4463, anchor = "center")
 
 queda_nao_label = Label(tela_dados, text="NÃO", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
-queda_nao_label.place(relx= 0.5776, rely=0.5037, anchor = "center")
+queda_nao_label.place(relx= 0.5776, rely=0.4463, anchor = "center")
 
 queda_sim_label = Label(tela_dados, text="SIM", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
-queda_sim_label.place(relx= 0.6944, rely=0.5037, anchor = "center")
+queda_sim_label.place(relx= 0.6944, rely=0.4463, anchor = "center")
 
 queda_entrada = ctk.CTkEntry(tela_dados, width=(screen_width * 19.79/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", fontsize, "bold"),bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12,
     validate="key", validatecommand=(validacao_queda, "%P"))
@@ -428,7 +431,7 @@ queda_entrada.bind("<FocusOut>", on_focus_out)
 
 # Labirintite
 labirintite_label = Label(tela_dados, text="Crise de labirintite no último mês?", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
-labirintite_label.place(relx=0.6438, rely=0.6093, anchor = 'center')
+labirintite_label.place(relx=0.6438, rely=0.5306, anchor = 'center')
 
 radio_labirintite_nao = ctk.CTkRadioButton(
         tela_dados,
@@ -443,7 +446,7 @@ radio_labirintite_nao = ctk.CTkRadioButton(
         border_width_checked=(screen_width * 0.41)/100,
         command=lambda: radio_selection(var_labirintite, labirintite_entrada, labirintite_placeholder)
         )
-radio_labirintite_nao.place(relx= 0.5495, rely = 0.6630, anchor = "center")
+radio_labirintite_nao.place(relx= 0.5495, rely = 0.5843, anchor = "center")
 
 radio_labirintite_sim = ctk.CTkRadioButton(
         tela_dados,
@@ -458,13 +461,13 @@ radio_labirintite_sim = ctk.CTkRadioButton(
         border_width_checked=(screen_width * 0.41)/100,
         command=lambda: radio_selection(var_labirintite, labirintite_entrada, labirintite_placeholder)
         )
-radio_labirintite_sim.place(relx= 0.6708, rely = 0.6630, anchor = "center")
+radio_labirintite_sim.place(relx= 0.6708, rely = 0.5843, anchor = "center")
 
 labirintite_nao_label = Label(tela_dados, text="NÃO", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
-labirintite_nao_label.place(relx= 0.5776, rely = 0.6630, anchor = "center")
+labirintite_nao_label.place(relx= 0.5776, rely = 0.5843, anchor = "center")
 
 labirintite_sim_label = Label(tela_dados, text="SIM", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
-labirintite_sim_label.place(relx= 0.6944, rely = 0.6630, anchor = "center")
+labirintite_sim_label.place(relx= 0.6944, rely = 0.5843, anchor = "center")
 
 labirintite_entrada = ctk.CTkEntry(tela_dados, width=(screen_width * 19.79/100), height=(screen_height * 6.02/100), fg_color="#FFFFFF", text_color="#2F2F2F", font=("Inter", fontsize, "bold"),bg_color="#D1DCE4", border_color="#A7BBCB", border_width=3, corner_radius=12,
     validate="key", validatecommand=(validacao_labirintite, "%P"))
@@ -473,9 +476,47 @@ labirintite_entrada.bind("<FocusIn>", lambda event: abrir_teclado())
 labirintite_entrada.bind("<Return>", on_enter_pressed)
 labirintite_entrada.bind("<FocusOut>", on_focus_out)
 
+#Membro Dominante
+membroDom_label = Label(tela_dados, text="Membro Dominante", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+membroDom_label.place(relx=0.6005, rely=0.6685, anchor = "center")
+
+radio_membro_esq = ctk.CTkRadioButton(
+        tela_dados,
+        width=(screen_width * 1.3)/100,
+        height=(screen_width * 1.3)/100,
+        text="",
+        variable=var_membroDom,
+        value=2,
+        fg_color="#0b2243",
+        border_color="#577B8E",
+        bg_color="#D1DCE4",
+        border_width_checked=(screen_width * 0.41)/100,
+        )
+radio_membro_esq.place(relx= 0.5495, rely = 0.7222, anchor = 'center')
+   
+radio_membro_dir = ctk.CTkRadioButton(
+        tela_dados,
+        width=(screen_width * 1.7)/100,
+        height=(screen_width * 1.7)/100,
+        text="",
+        variable=var_membroDom,
+        value=1,
+        fg_color="#0b2243",
+        border_color="#577B8E",
+        bg_color="#D1DCE4",
+        border_width_checked=(screen_width * 0.41)/100,
+        )
+radio_membro_dir.place(relx= 0.6708, rely = 0.7222, anchor = 'center')
+
+membroEsq_label = Label(tela_dados, text="ESQUERDO", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+membroEsq_label.place(relx= 0.599, rely = 0.7222, anchor = 'center')
+
+membroDir_label = Label(tela_dados, text="DIREITO", font=("Inter", fontsize, "bold"), background="#D1DCE4", fg="#2F2F2F")
+membroDir_label.place(relx= 0.7073, rely = 0.7222, anchor = 'center')
+
 queda_placeholder = Label(queda_entrada, text="Quantos?", font=("Inter", fontsize, "bold"), background="#FFFFFF", fg="#CDCDCD")
 dor_placeholder = Label(dor_entrada, text="Qual nível? (0 a 10)", font=("Inter", fontsize, "bold"), background="#FFFFFF", fg="#CDCDCD")
-labirintite_placeholder = Label(labirintite_entrada, text="Qual tratamento utilizado?", font=("Inter", fontsize, "bold"), background="#FFFFFF", fg="#CDCDCD")
+labirintite_placeholder = Label(labirintite_entrada, text="Tratamento utilizado?", font=("Inter", fontsize, "bold"), background="#FFFFFF", fg="#CDCDCD")
 
 # Função para armazenar os dados em uma lista
 global dados_paciente_lista
@@ -501,8 +542,10 @@ def armazenar_dados():
     tem_labirintite = "Sim" if var_labirintite.get() == "1" else "Não" if var_labirintite.get() == "2" else ""
     tratamento_labirintite = labirintite_entrada.get().strip() if tem_labirintite == "Sim" else "Nenhum"
 
+    membroDominante = "Direito" if var_membroDom.get() == "1" else "Esquerdo" if var_membroDom.get() == "2" else ""
+
     # Verificação dos campos obrigatórios
-    if not all([nome, idade, altura, peso, sexo, tem_dor, tem_queda, tem_labirintite]):
+    if not all([nome, idade, altura, peso, sexo, tem_dor, tem_queda, tem_labirintite, membroDominante]):
         messagebox.showwarning("Atenção", "Preencha todos os campos obrigatórios!")
         return
     
@@ -522,13 +565,18 @@ def armazenar_dados():
         nome, idade, altura, peso, sexo,  # Dados básicos
         tem_dor, nivel_dor,               # Dados sobre dor
         tem_queda, qtd_quedas,            # Dados sobre quedas
-        tem_labirintite, tratamento_labirintite  # Dados sobre labirintite
+        tem_labirintite, tratamento_labirintite,  # Dados sobre labirintite
+        membroDominante
+        
     ]
+
+    print(dados_paciente_lista)
 
     # Resetando os checkboxes e entradas condicionais
     var_dor.set(0)
     var_queda.set(0)
     var_labirintite.set(0)
+    var_membroDom.set(0)
 
     dor_entrada.place_forget()
     queda_entrada.place_forget()
@@ -545,7 +593,6 @@ def armazenar_dados():
     sexo_paciente.reset_button_text()
 
     messagebox.showinfo("Sucesso", "Dados cadastrados com sucesso!")
-    print("Dados salvos:", dados_paciente_lista)  # Apenas para verificar
     show_frame(tela_parametros)
     return dados_paciente_lista
 
@@ -596,10 +643,6 @@ def CarregarPerfil():
         D5 = Dados.D5[num]
         D6 = Dados.D6[num]
         D7 = Dados.D7[num]
-        D8 = Dados.D8[num]
-        D9 = Dados.D9[num]
-        D10 = Dados.D10[num]
-        D11 = Dados.D11[num]
         
         P0 = Dados.D12[num]
         P1 = Dados.D13[num]
@@ -641,10 +684,6 @@ def CarregarPerfil():
         allData5.append(D5)
         allData6.append(D6)
         allData7.append(D7)
-        allData8.append(D8)
-        allData9.append(D9)
-        allData10.append(D10)
-        allData11.append(D11)
 
         num = num + 1
 
@@ -765,6 +804,8 @@ height_bg_adc = int((physical_width * 2.6) / 100)
 bg_btn_adc1 = Image.open("UI/Parametros/btn_adc-rmv.png")
 bg_btn_adc1 = bg_btn_adc1.resize((width_bg_adc, height_bg_adc), Image.Resampling.LANCZOS)
 bg_btn_adc = ImageTk.PhotoImage(bg_btn_adc1)
+
+
 
 #MARK: CANVAS MOVIMENTAÇÃO -------------------------
 canvas_movimentacao = Canvas(
@@ -959,7 +1000,6 @@ btn_remover.place(relx=0.2, rely=0.726, anchor="center")
 def combo_box(line, idx):
     global index_combo
     index_combo = idx
-    print(index_combo, line)
     if line == "Movimentação":
         mostrar_movimentacao()
     elif line == "Oscilação":
@@ -968,7 +1008,6 @@ def combo_box(line, idx):
 def radio_button(value):
     global index_radio
     index_radio = value
-    print(f"Radio selecionado: {index_radio}")
 
     canvas_movimentacao.place_forget()
     canvas_oscilacao.place_forget()
@@ -986,9 +1025,29 @@ def radio_button(value):
             mostrar_movimentacao()
         elif combobox_criada[index_radio].get() == "Oscilação":
             mostrar_oscilacao()
-    else:
-        print(f"Erro: Índice {index_radio} fora do intervalo!")
     
+#CONFIGURAÇÃO DO GIF
+
+def play_gif(label, gif_path, size=(300, 300)):  # Define o tamanho desejado
+    img = Image.open(gif_path)
+    frames = []
+
+    try:
+        while True:
+            resized_frame = img.copy().resize(size)  # Redimensiona o frame
+            frames.append(ImageTk.PhotoImage(resized_frame))
+            img.seek(len(frames))  # Avança para o próximo frame
+    except EOFError:
+        pass  # Final da sequência de frames
+
+    def update(ind):
+        frame = frames[ind]
+        label.configure(image=frame)
+        label.image = frame
+        ind = (ind + 1) % len(frames)  # Loop infinito
+        label.after(30, update, ind)  # Atualiza o frame a cada 100ms
+
+    update(0)  # Inicia a animação
 
 def mostrar_movimentacao():
     canvas_movimentacao.place(relx=0.3453,rely=0.3491,anchor="nw")  # Exibe o canvas de movimentação
@@ -1046,7 +1105,7 @@ def configurar_canvas_movimentacao():
         min_value=1,
         max_value=15,
         step=1,
-        new_value=matriz_parametros[index_radio][3] if matriz_parametros[index_radio][3] != 0 else 1
+        new_value=matriz_parametros[index_radio][3] if matriz_parametros[index_radio][3] != 0 else 5
     )
     mov_label_vel.place(relx=0.6682, rely = 0.38, anchor = "center")
     mov_vel.place(relx=0.6682, rely = 0.48, anchor = "center")
@@ -1057,7 +1116,7 @@ def configurar_canvas_movimentacao():
         min_value=-25,
         max_value=25,
         step=1,
-        new_value=matriz_parametros[index_radio][4] if matriz_parametros[index_radio][4] != 0 else -25
+        new_value=matriz_parametros[index_radio][4] if matriz_parametros[index_radio][4] > -25 else -25
     )
     mov_label_x.place(relx=0.87, rely= 0.2180, anchor = "center")
     mov_x.place(relx=0.87, rely = 0.3146, anchor = "center")
@@ -1068,7 +1127,7 @@ def configurar_canvas_movimentacao():
         min_value=-25,
         max_value=25,
         step=1,
-        new_value=matriz_parametros[index_radio][5] if matriz_parametros[index_radio][5] != 0 else -25
+        new_value=matriz_parametros[index_radio][5] if matriz_parametros[index_radio][5] > -25 else -25
     )
     mov_label_y.place(relx=0.87, rely= 0.5551, anchor = "center")
     mov_y.place(relx=0.87, rely = 0.6472, anchor = "center")
@@ -1100,10 +1159,16 @@ def configurar_canvas_movimentacao():
     compound="center",
     bd=0,
     activeforeground="#f7c360",
+    background="#E0E7EC", 
     command= confirmar_mov
     #comando do botão precisa ter o get e o .append(matriz_parametros[index_selecionado][posição])
     )
     btn_confirmar_mov.place(relx=0.6655, rely=0.8854, anchor='center')
+
+    label_gif_mov = Label(canvas_movimentacao, borderwidth=5, bg="#A7BBCB")
+    label_gif_mov.place(relx=0.1991, rely=0.52, anchor="center")
+
+    play_gif(label_gif_mov, "UI/GIF/gif_mov.gif", size = (300, 300))
 
 
 def configurar_canvas_oscilacao():
@@ -1128,7 +1193,7 @@ def configurar_canvas_oscilacao():
         min_value=-25,
         max_value=25,
         step=1,
-        new_value=matriz_parametros[index_radio][1] if matriz_parametros[index_radio][1] != 0 else -25)
+        new_value=matriz_parametros[index_radio][1] if matriz_parametros[index_radio][1] > -25 else -25)
     osc_label_maxx.place(relx=0.4664, rely= 0.2180, anchor = "center")
     osc_maxx.place(relx=0.4664, rely = 0.3146, anchor = "center")
 
@@ -1137,7 +1202,7 @@ def configurar_canvas_oscilacao():
         min_value=-25,
         max_value=25,
         step=1,
-        new_value=matriz_parametros[index_radio][2] if matriz_parametros[index_radio][2] != 0 else -25)
+        new_value=matriz_parametros[index_radio][2] if matriz_parametros[index_radio][2] > -25 else -25)
     osc_label_minx.place(relx=0.4664, rely= 0.5551, anchor = "center")
     osc_minx.place(relx=0.4664, rely = 0.6472, anchor = "center")
 
@@ -1146,14 +1211,14 @@ def configurar_canvas_oscilacao():
         min_value=1,
         max_value=15,
         step=1,
-        new_value=matriz_parametros[index_radio][3] if matriz_parametros[index_radio][3] != 0 else 1)
+        new_value=matriz_parametros[index_radio][3] if matriz_parametros[index_radio][3] != 0 else 5)
     osc_label_vel.place(relx=0.6682, rely= 0.2180, anchor = "center")
     osc_vel.place(relx=0.6682, rely = 0.3146, anchor = "center")
 
     osc_label_rep = Label(canvas_oscilacao, text="Repetições", font=("Inter",fontsize14, "bold"), background="#E0E7EC", fg="#656565")
     osc_rep = boxes.CustomSpinbox(canvas_oscilacao,
         min_value=1,
-        max_value=9999,
+        max_value=100,
         step=1,
         new_value=matriz_parametros[index_radio][4] if matriz_parametros[index_radio][4] != 0 else 1)
     osc_label_rep.place(relx=0.6682, rely= 0.5551, anchor = "center")
@@ -1164,7 +1229,7 @@ def configurar_canvas_oscilacao():
         min_value=-25,
         max_value=25,
         step=1,
-        new_value=matriz_parametros[index_radio][5] if matriz_parametros[index_radio][5] != 0 else -25)
+        new_value=matriz_parametros[index_radio][5] if matriz_parametros[index_radio][5] > -25 else -25)
     osc_label_maxy.place(relx=0.87, rely= 0.2180, anchor = "center")
     osc_maxy.place(relx=0.87, rely = 0.3146, anchor = "center")
 
@@ -1173,7 +1238,7 @@ def configurar_canvas_oscilacao():
         min_value=-25,
         max_value=25,
         step=1,
-        new_value=matriz_parametros[index_radio][6] if matriz_parametros[index_radio][6] != 0 else -25)
+        new_value=matriz_parametros[index_radio][6] if matriz_parametros[index_radio][6] > -25 else -25)
     osc_label_miny.place(relx=0.87, rely= 0.5551, anchor = "center")
     osc_miny.place(relx=0.87, rely = 0.6472, anchor = "center")
 
@@ -1203,10 +1268,17 @@ def configurar_canvas_oscilacao():
     compound="center",
     bd=0,
     activeforeground="#f7c360",
+    background="#E0E7EC",
     command= confirmar_osc
     #comando do botão precisa ter o get e o .append(matriz_parametros[index_selecionado][posição])
     )
     btn_confirmar_osc.place(relx=0.6655, rely=0.8854, anchor='center')
+
+    label_gif_osc = Label(canvas_oscilacao, borderwidth=5, bg="#A7BBCB")
+    label_gif_osc.place(relx=0.1991, rely=0.52, anchor="center")
+
+    play_gif(label_gif_osc, "UI/GIF/gif_osc.gif", size = (300, 300))
+
 
 def limpar_widgets():
     global combobox_criada, frames_widgets
@@ -1223,12 +1295,9 @@ def carregar_presets():
     global matriz_parametros
 
     # Defina aqui a matriz predefinida
-    matriz_parametros = [['O', -20, -25, 1, 1, -25,-25],
-                         ['M', 0, 0, 1, -20, -25, 0], 
-                         ['O', -25, -25, 1, 1, -25,-20], 
-                         ['M', 0, 0, 1, -25, -20, 0], 
-                         ['O', -25, -25, 1, 1, -25,-25],
-                         ['M', 0, 0, 1, -25, -25, 0]]
+    matriz_parametros = [['O', 0, 0, 10, 3, 10, -10],
+                         ['O', 10, -10, 10, 3, 0, 0], 
+                         ]
 
     # Remove os widgets antigos antes de criar novos
     limpar_widgets()
@@ -1238,7 +1307,6 @@ def carregar_presets():
         gerar_widgets(rotina, 1, var, i)
     
     messagebox.showinfo(title=None, message="Carregamento de predefinição concluído")
-    print(f"Carregamento de predefinição concluído {matriz_parametros}")
 
 btn_presets = Button(
     tela_parametros,
@@ -1293,20 +1361,37 @@ def ManterColeta():
     global ard1
     global loopColeta
     global start
-    
+
+    global NMov, Passo, TempoStart, Movendo, AngXAtual, AngYAtual, RepAtual
+
+    NMov = 0
+    Passo = 1
+    TempoStart = time.time()
+    Movendo = 0
+
+    AngXAtual = 0
+    AngYAtual = 0
+
+    RepAtual = 1
 
     loopColeta = 1
-    baud = 9600
+    baud = 500000
     
-    porta1 = "COM10" #Enviar dados para essa porta
-    
-    ard1 = serial.Serial(porta1, baud, timeout=0.01, writeTimeout=3) #Enviar dados para essa porta
+    #COM8 - SALVAMENTO DE DADOS
+    #COM9 - ESCREVE
+    #COM18 - LÊ
 
-    os.startfile("Project1\FileName.exe")  #Executa o programa de coleta de dados
+    porta1 = "COM9" #Enviar dados para essa porta
+    #porta2 = "COM18"
+
+    ard1 = serial.Serial(porta1, baud, timeout=0.01, writeTimeout=3) #Enviar dados para essa porta
+    #ard2 = serial.Serial(porta2, baud, timeout=0.01, writeTimeout=3)
+
+    os.startfile("Supervisorio.exe")  #Executa o programa de coleta de dados
     time.sleep(1) #Espera 1 segundo para o programa abrir e se conectar
-    ard1.write(str.encode('#andre6')) # Nome do arquivo em que será salvo os dados (precisa ter o # antes)
+    ard1.write(str.encode('#andre9,0,0,5\n')) # Nome do arquivo em que será salvo os dados (precisa ter o # antes)
     time.sleep(1) # Espera 1 segundo para o arquivo ser criado
-    ard1.write(str.encode('I 0 0 0')) #Inicia a coleta
+    ard1.write(str.encode('I,0,0,5\n')) #Inicia a coleta
 
     Dados_CopX = [0]
     Dados_CopY = [0]
@@ -1319,6 +1404,160 @@ def ManterColeta():
 
     root.after(10, ColetarDados)
 
+
+def ControlarMovimento():
+
+    global matriz_parametros, NMov, TempoStart, Movendo, Passo, AngYAtual, AngXAtual, RepAtual, AngX, AngY
+
+    Linhas = len(matriz_parametros)
+
+    if NMov < Linhas:
+
+        Tipo = matriz_parametros[NMov][0]
+
+        if (Tipo == "O"):
+
+            AngXmax = matriz_parametros[NMov][1]
+            AngXmin = matriz_parametros[NMov][2]
+            VelOci = matriz_parametros[NMov][3]
+            Rep = matriz_parametros[NMov][4]
+            AngYmax = matriz_parametros[NMov][5]
+            AngYmin = matriz_parametros[NMov][6]
+
+            if Passo == 1:
+
+                if(time.time() - TempoStart) >= 1:
+
+                    Passo = 2
+
+                    TempoStart = time.time()
+
+            if Passo == 2:
+
+                if Movendo == 0:
+
+                    AngX = abs( AngXAtual - AngXmin)
+                    AngY = abs( AngYAtual - AngYmin)
+
+                    ard1.write(str.encode(f"I,{AngXmin},{AngYmin},{VelOci}\n")) #Movimento
+                    Movendo = 1
+
+                    TempoStart = time.time()
+
+                if Movendo == 1 and (time.time() - TempoStart) >= abs(AngX/VelOci) and (time.time() - TempoStart) >= abs(AngY/VelOci):
+
+                    Passo = 3
+                    Movendo = 0
+                    TempoStart = time.time()
+
+                    AngXAtual = AngXmin
+                    AngYAtual = AngYmin
+
+            if Passo == 3:
+
+                if Movendo == 0:
+
+                    AngX = abs( AngXAtual - AngXmax)
+                    AngY = abs( AngYAtual - AngYmax)
+
+                    ard1.write(str.encode(f"I,{AngXmax},{AngYmax},{VelOci}\n")) #Movimento
+                    Movendo = 1
+
+                    TempoStart = time.time()
+
+                if Movendo == 1 and (time.time() - TempoStart) >= abs(AngX/VelOci) and (time.time() - TempoStart) >= abs(AngY/VelOci):
+
+                    Passo = 4
+                    Movendo = 0
+                    TempoStart = time.time()
+
+                    AngXAtual = AngXmax
+                    AngYAtual = AngYmax
+
+            if Passo == 4:
+
+                RepAtual = RepAtual +1
+
+                if RepAtual > Rep:
+
+                    Passo = 5
+
+                else:
+
+                    Passo = 2
+                    TempoStart = time.time()
+
+            if Passo == 5:
+
+                if Movendo == 0:
+
+                    AngX = abs( AngXAtual - 0)
+                    AngY = abs( AngYAtual - 0)
+
+                    ard1.write(str.encode(f"I,0,0,{VelOci}\n")) #Movimento
+                    Movendo = 1
+
+                    TempoStart = time.time()
+
+                if Movendo == 1 and (time.time() - TempoStart) >= abs(AngX/VelOci) and (time.time() - TempoStart) >= abs(AngY/VelOci):
+
+                    Passo = 1
+                    Movendo = 0
+                    TempoStart = time.time()
+
+                    RepAtual = 1
+
+                    AngXAtual = 0
+                    AngYAtual = 0
+
+                    NMov = NMov + 1
+
+        if (Tipo == "M"):
+
+            TempoIni = matriz_parametros[NMov][1]
+            TempoFin = matriz_parametros[NMov][2]
+            VelMov = matriz_parametros[NMov][3]
+            AngX = abs( AngXAtual - matriz_parametros[NMov][4])
+            AngY = abs( AngYAtual - matriz_parametros[NMov][5])
+            CorX = matriz_parametros[NMov][4]
+            CorY = matriz_parametros[NMov][5]
+
+            if Passo == 1:
+
+                if(time.time() - TempoStart) >= TempoIni:
+
+                    Passo = 2
+
+                    TempoStart = time.time()
+
+            if Passo == 2:
+
+                if Movendo == 0:
+
+                    ard1.write(str.encode(f"I,{CorX},{CorY},{VelMov}\n")) #Movimento
+                    Movendo = 1
+
+                if Movendo == 1 and (time.time() - TempoStart) >= abs(AngX/VelMov) and (time.time() - TempoStart) >= abs(AngY/VelMov):
+
+                    Passo = 3
+                    Movendo = 0
+                    TempoStart = time.time()
+
+                    AngXAtual = CorX
+                    AngYAtual = CorY
+
+            if Passo == 3:
+
+                if(time.time() - TempoStart) >= TempoFin:
+
+                    Passo = 1
+
+                    TempoStart = time.time()
+
+                    NMov = NMov + 1
+
+    else:
+        PararColeta()
 
 #MARK: COLETAR DADOS DO TEENSY
 
@@ -1333,70 +1572,112 @@ def ColetarDados():
     global Dados_Tempo
     global Dados_Tempo
 
-    valueRead = ard1.readline()
+    ControlarMovimento()
 
-    valueSplit = valueRead.split(b",")
 
-    if len(valueSplit) == 20:
+    list_of_files = glob.glob('*.txt') #* means all if need specific format then #.csv
+    latest_file = max(list_of_files, key= os.path.getctime)
 
-        P0 = float(valueSplit[12])
-        P1 = float(valueSplit[13])
-        P2 = float(valueSplit[14])
-        P3 = float(valueSplit[15])
+    try:
 
-        P4 = float(valueSplit[16])
-        P5 = float(valueSplit[17])
-        P6 = float(valueSplit[18])
-        P7 = float(valueSplit[19])
+        with open(latest_file,"r", encoding="utf-8",errors="ignore") as scraped:
 
-        X = float(valueSplit[1])
-        Y = float(valueSplit[2])
+            final_line = scraped.readlines()[-2]
 
-        DxP0= 16.8
-        DyP0= 16
-        DxP1= 3.4
-        DyP1= 16.5
-        DxP2= 3.4
-        DyP2= 16
-        DxP3= 17
-        DyP3= 16
+            valueSplit = str(final_line).split("\t")
 
-        DxP4= 3.5
-        DyP4= 16
-        DxP5= 17
-        DyP5= 15.5
-        DxP6= 17
-        DyP6= 16
-        DxP7= 3.8
-        DyP7= 16
+            P0 = float(valueSplit[-8])
+            P1 = float(valueSplit[-7])
+            P2 = float(valueSplit[-6])
+            P3 = float(valueSplit[-5])
 
-        if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
-            CopX = (P4*DxP4 + P5*DxP5 + P6*DxP6 + P7*DxP7 - P0*DxP0 - P1*DxP1 - P2*DxP2 - P3*DxP3)/(P0+P1+P2+P3+P4+P5+P6+P7)
-        else:
-            CopX = 0
+            P4 = float(valueSplit[-4])
+            P5 = float(valueSplit[-3])
+            P6 = float(valueSplit[-2])
+            P7 = float(valueSplit[-1])
 
-        if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
-            CopY = (P0*DyP0 + P1*DyP1 + P4*DyP4 + P5*DyP5 - P2*DyP2 - P3*DyP3 - P6*DyP6 - P7*DyP7)/(P0+P1+P2+P3+P4+P5+P6+P7)
+            if(P0 < 0):
+                P0 = 0
 
-        else:
-            CopY = 0
+            if(P1 < 0):
+                P1 = 0
 
-        Dados_CopX.append(CopX)
-        Dados_CopY.append(CopY)
+            if(P2 < 0):
+                P2 = 0
 
-        ax3.clear() #Limpa o grafico
+            if(P3 < 0):
+                P3 = 0
 
-        lineX = [0, 0, -20, -20, 20, 20, 0]
-        lineY = [20, -20, -20, 20, 20, -20, -20]
-        ax3.plot(lineX, lineY, color='#A7BBCB')
-        ax3.plot(Dados_CopX, Dados_CopY, color='#304462')
+            if(P4 < 0):
+                P4 = 0
 
-        canvasMatplot3.draw() #Desenha o grafico
+            if(P5 < 0):
+                P5 = 0
 
+            if(P6 < 0):
+                P6 = 0
+
+            if(P7 < 0):
+                P7 = 0
+
+            X = float(valueSplit[-16])
+            Y = float(valueSplit[-15])
+
+            VEL = float(valueSplit[-14])
+            EEG = float(valueSplit[-13])
+            EMG1 = float(valueSplit[-12])
+            EMG2 = float(valueSplit[-11])
+            EMG3 = float(valueSplit[-10])
+            EMG4 = float(valueSplit[-9])
+
+            DxP0= 16.8
+            DyP0= 16
+            DxP1= 3.4
+            DyP1= 16.5
+            DxP2= 3.4
+            DyP2= 16
+            DxP3= 17
+            DyP3= 16
+
+            DxP4= 3.5
+            DyP4= 16
+            DxP5= 17
+            DyP5= 15.5
+            DxP6= 17
+            DyP6= 16
+            DxP7= 3.8
+            DyP7= 16
+
+            if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
+                CopX = (P4*DxP4 + P5*DxP5 + P6*DxP6 + P7*DxP7 - P0*DxP0 - P1*DxP1 - P2*DxP2 - P3*DxP3)/(P0+P1+P2+P3+P4+P5+P6+P7)
+            else:
+                CopX = 0
+
+            if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
+                CopY = (P0*DyP0 + P1*DyP1 + P4*DyP4 + P5*DyP5 - P2*DyP2 - P3*DyP3 - P6*DyP6 - P7*DyP7)/(P0+P1+P2+P3+P4+P5+P6+P7)
+
+            else:
+                CopY = 0
+
+            Dados_CopX.append(CopX)
+            Dados_CopY.append(CopY)
+
+            ax3.clear() #Limpa o grafico
+
+            lineX = [0, 0, -20, -20, 20, 20, 0]
+            lineY = [20, -20, -20, 20, 20, -20, -20]
+            ax3.plot(lineX, lineY, color='#A7BBCB')
+            ax3.plot(Dados_CopX, Dados_CopY, color='#304462')
+
+            canvasMatplot3.draw() #Desenha o grafico
+
+    except:
+        print("Erro Dado")
+        
     if(loopColeta) == 1:
         root.after(10, ColetarDados)
     else: 
-        ard1.write(str.encode('F 0 0 0')) #Interrompe a coleta
+        ard1.write(str.encode('F,0,0,5\n')) #Interrompe a coleta
         time.sleep(1) #Espera 1 segundo para coletar todos os dados
 
         ard1.close() #Fecha a conexão com o Teensy
@@ -1419,7 +1700,7 @@ btn_iniciarCarregamento = Button(
     compound="center",
     bd=0,
     activeforeground="#f7c360",
-    command=lambda: show_frame(tela_carregamento) #Com o teensy mudar para ManterColeta()
+    command=lambda: ManterColeta() #show_frame(tela_carregamento) #Com o teensy mudar para ManterColeta()
 )
 btn_iniciarCarregamento.place(relx=0.7969, rely=0.8611)
 
@@ -1491,15 +1772,6 @@ canvas_distr_massas = Canvas(
     highlightcolor="#A7BBCB",
     highlightbackground="#A7BBCB"
     )
-canvas_velocidade = Canvas(
-    tela_resultado,
-    width=(physical_width * 46)/100,
-    height=(physical_height * 60)/100,
-    bg="#ffffff",
-    highlightthickness=6,
-    highlightcolor="#A7BBCB",
-    highlightbackground="#A7BBCB"
-    )
 canvas_emg = Canvas(
     tela_resultado,
     width=(physical_width * 46)/100,
@@ -1526,7 +1798,7 @@ canvas_grafico_leitura = Canvas(canvas_centro_pressao,
     highlightthickness=6,
     highlightcolor="#A7BBCB",
     highlightbackground="#A7BBCB")
-canvas_grafico_leitura.place(relx=0.5, rely=0.5, anchor="center")  # Centralizado na tela
+canvas_grafico_leitura.place(relx=0.38, rely=0.5, anchor="center")  # Centralizado na tela
 
 canvasMatplot2 = FigureCanvasTkAgg(fig2, master = canvas_grafico_leitura)
 canvasMatplot2.get_tk_widget().pack()
@@ -1546,11 +1818,25 @@ canvas_grafico_emg.place(relx=0.6, rely=0.55, anchor="center")  # Centralizado n
 canvasMatplot4 = FigureCanvasTkAgg(fig4, master = canvas_grafico_emg)
 canvasMatplot4.get_tk_widget().pack()
 
+fig6 = matplotlib.figure.Figure()
+ax6 = fig6.add_subplot()
+
+canvas_grafico_massa = Canvas(canvas_distr_massas, 
+    width=(physical_width * 46)/100, 
+    height=(physical_height * 60)/100, 
+    bg="#ffffff",
+    highlightthickness=6,
+    highlightcolor="#A7BBCB",
+    highlightbackground="#A7BBCB")
+canvas_grafico_massa.place(relx=0.38, rely=0.5, anchor="center")  # Centralizado na tela
+
+canvasMatplot6 = FigureCanvasTkAgg(fig6, master = canvas_grafico_massa)
+canvasMatplot6.get_tk_widget().pack()
+
 
 #MARK: Ler Arquivo() --------------------------------------------------------------------------------------------------------------------------------------
 
 def LerArquivo():
-    print("Método para ler o arquivo")
 
     global D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11
     global P0, P1, P2, P3, P4, P5, P6, P7
@@ -1584,7 +1870,7 @@ def LerArquivo():
     ax2.clear() #Limpa o grafico
     ax4.clear()
 
-    list_of_files = glob.glob('*.tsv') # * means all if need specific format then *.csv
+    list_of_files = glob.glob('*.txt') # * means all if need specific format then *.csv
     latest_file = max(list_of_files, key=os.path.getctime)
 
     with open(latest_file) as file:
@@ -1713,6 +1999,164 @@ def LerArquivo():
 
     salvar_dados()
 
+#MARK: Ler Arquivo() --------------------------------------------------------------------------------------------------------------------------------------
+
+def AvancarResultados():
+
+    global D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11
+    global P0, P1, P2, P3, P4, P5, P6, P7
+    global allData0, allData1, allData2, allData3, allData4, allData5, allData6, allData7, allData8, allData9, allData10, allData11, allData12, allData13, allData14, allData15, allData16, allData17, allData18, allData19
+    global dxMax, dxMin, dyMax, dyMin
+
+    allData0 = [0]
+    allData1 = [0]
+    allData2 = [0]
+    allData3 = [0]
+    allData4 = [0]
+    allData5 = [0]
+    allData6 = [0]
+    allData7 = [0]
+    allData8 = [0]
+    allData9 = [0]
+    allData10 = [0]
+    allData11 = [0]
+    allData12 = [0]
+    allData13 = [0]
+    allData14 = [0]
+    allData15 = [0]
+    allData16 = [0]
+    allData17 = [0]
+    allData18 = [0]
+    allData19 = [0]
+    
+    Dados_CopX = [0]
+    Dados_CopY = [0]
+
+    list_of_files = glob.glob('*.txt') #* means all if need specific format then #.csv
+    latest_file = max(list_of_files, key= os.path.getctime)
+
+    with open(latest_file) as fd:
+        rd = csv.reader(fd,delimiter="\t")
+
+        for row in rd:
+###################################################################################################
+
+            try:
+                valueSplit = str(row).split(",")
+
+                D0 = re.sub("[^A-Z]", "", valueSplit[-17])
+                D1 = float(re.sub("[^0-9]", "", valueSplit[-16]))
+                D2 = float(re.sub("[^0-9]", "", valueSplit[-15]))
+                D3 = float(re.sub("[^0-9]", "", valueSplit[-14]))
+                
+                #Dados EMG
+                D4 = float(re.sub("[^0-9]", "", valueSplit[-12]))
+                D5 = float(re.sub("[^0-9]", "", valueSplit[-11]))
+                D6 = float(re.sub("[^0-9]", "", valueSplit[-10]))
+                D7 = float(re.sub("[^0-9]", "", valueSplit[-9]))
+                
+                #Dados COP
+                P0 = float(re.sub("[^0-9]", "", valueSplit[-8]))
+                P1 = float(re.sub("[^0-9]", "", valueSplit[-7]))
+                P2 = float(re.sub("[^0-9]", "", valueSplit[-6]))
+                P3 = float(re.sub("[^0-9]", "", valueSplit[-5]))
+
+                P4 = float(re.sub("[^0-9]", "", valueSplit[-4]))
+                P5 = float(re.sub("[^0-9]", "", valueSplit[-3]))
+                P6 = float(re.sub("[^0-9]", "", valueSplit[-2]))
+                P7 = float(re.sub("[^0-9]", "", valueSplit[-1]))
+
+                allData0.append(D0)
+                allData1.append(D1)
+                allData2.append(D2)
+                allData3.append(D3)
+                allData4.append(D4)
+                allData5.append(D5)
+                allData6.append(D6)
+                allData7.append(D7)
+                allData12.append(P0)
+                allData13.append(P1)
+                allData14.append(P2)
+                allData15.append(P3)
+                allData16.append(P4)
+                allData17.append(P5)
+                allData18.append(P6)
+                allData19.append(P7)
+
+                DxP0= 16.8
+                DyP0= 16
+                DxP1= 3.4
+                DyP1= 16.5
+                DxP2= 3.4
+                DyP2= 16
+                DxP3= 17
+                DyP3= 16
+
+                DxP4= 3.5
+                DyP4= 16
+                DxP5= 17
+                DyP5= 15.5
+                DxP6= 17
+                DyP6= 16
+                DxP7= 3.8
+                DyP7= 16
+
+                if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
+                    CopX = (P4*DxP4 + P5*DxP5 + P6*DxP6 + P7*DxP7 - P0*DxP0 - P1*DxP1 - P2*DxP2 - P3*DxP3)/(P0+P1+P2+P3+P4+P5+P6+P7)
+                    Dados_CopX.append(CopX)
+                
+                if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
+                    CopY = (P0*DyP0 + P1*DyP1 + P4*DyP4 + P5*DyP5 - P2*DyP2 - P3*DyP3 - P6*DyP6 - P7*DyP7)/(P0+P1+P2+P3+P4+P5+P6+P7)
+                    Dados_CopY.append(CopY)
+
+            except:
+                print("ErroDados")
+
+    dxMax = max(Dados_CopX)
+    dxMin = min(Dados_CopX)
+    dyMax = max(Dados_CopY)
+    dyMin = min(Dados_CopY)
+
+    Dx = dxMax - dxMin
+    Dy = dyMax - dyMin
+
+    lineX = [0, 0, -20, -20, 20, 20, 0]
+    lineY = [20, -20, -20, 20, 20, -20, -20]
+    ax2.plot(lineX, lineY, color='#A7BBCB')
+    ax2.plot(Dados_CopX, Dados_CopY, color='#304462')
+
+    canvasMatplot2.draw() #Desenha o grafico
+
+    global dados_velocidade_lista
+
+    #MARK: Definindo como 0 para teste sem o teensy
+    Dados_Tempo = 5
+
+    n = 0
+    Dt = 0
+
+    while n < (len(Dados_CopX))-2:
+
+        x1 = Dados_CopX[(n+1)]
+        x2 = Dados_CopX[((n+1) + 1)]
+
+        y1 = Dados_CopY[(n+1)]
+        y2 = Dados_CopY[((n+1) + 1)]
+
+        d = math.sqrt((x1-x2) **2 + (y1-y2) **2)
+
+        Dt = Dt + d
+
+        n = n + 1
+
+    vdcp = Dt / Dados_Tempo
+
+    dados_velocidade_lista = [vdcp, Dx, Dy]
+
+    salvar_dados()
+
+
+  ##############################################################################################          
 
 btn_avancarResultado = Button(
     tela_carregamento,
@@ -1726,7 +2170,7 @@ btn_avancarResultado = Button(
     bd=0,
     activeforeground="#f7c360",
     #MARK: Botão para carregar o arquivo do excel
-    command=lambda: LerArquivo()
+    command=lambda: AvancarResultados()
 )
 btn_avancarResultado.place(relx=0.7969, rely=0.8611)
 
@@ -1734,7 +2178,6 @@ btn_avancarResultado.place(relx=0.7969, rely=0.8611)
 canvas_paciente.place(relx=0.4688, rely=0.213, anchor='nw')
 canvas_centro_pressao.place(relx=0.4688, rely=0.213, anchor='nw')
 canvas_distr_massas.place(relx=0.4688, rely=0.213, anchor='nw')
-canvas_velocidade.place(relx=0.4688, rely=0.213, anchor='nw')
 canvas_emg.place(relx=0.4688, rely=0.213, anchor='nw')
 
 # Conteudo Painel PACIENTE
@@ -1755,7 +2198,7 @@ bg_dadospaciente = ImageTk.PhotoImage(bg_dadospaciente1)
 
 #Fundo dor/queda
 width_bg_dorqueda = int((physical_width * 18.23) / 100)
-height_bg_dorqueda = int((physical_height * 14.81) / 100)
+height_bg_dorqueda = int((physical_height * 9.26) / 100)
 bg_dorqueda1 = Image.open("UI/Resultado/bg_dor_queda.png")
 bg_dorqueda1 = bg_dorqueda1.resize((width_bg_dorqueda, height_bg_dorqueda), Image.Resampling.LANCZOS)
 bg_dorqueda = ImageTk.PhotoImage(bg_dorqueda1)
@@ -1778,13 +2221,14 @@ bg_minibarra = ImageTk.PhotoImage(bg_minibarra1)
 #MARK: Exibir dados()
 def exibir_dados_paciente():
     canvas_paciente.delete("all")  # Limpa o conteúdo do Canvas antes de exibir novos dados
-    print("passou canvas")
      # Obtém as dimensões do Canvas
     canvas_width = canvas_paciente.winfo_width()
     canvas_height = canvas_paciente.winfo_height()
 
-    # Suponha que `dados_paciente_lista` contenha [nome, idade, altura, peso, sexo ]
-    nome, idade, altura, peso, sexo, tem_dor, nivel_dor, tem_queda, qtd_quedas, tem_labirintite, tratamento_labirintite  = dados_paciente_lista
+
+    nome, idade, altura, peso, sexo, tem_dor, nivel_dor, tem_queda, qtd_quedas, tem_labirintite, tratamento_labirintite, membroDominante  = dados_paciente_lista
+
+
 
     # Posiciona cada texto usando valores relativos, sem armazenar coordenadas em variáveis
     canvas_paciente.create_text(canvas_width * 0.5, canvas_height * 0.115, 
@@ -1795,84 +2239,79 @@ def exibir_dados_paciente():
     canvas_paciente.create_text(canvas_width * 0.5, canvas_height * 0.25, 
                                 text=f"Idade: {idade} anos  |  Altura: {altura}cm  |  Peso: {peso}kg  |  Sexo: {sexo}", font=("Inter", fontsize-1), fill="#304462")
  
-    canvas_paciente.create_image(canvas_width * 0.267, canvas_height * 0.51, image = bg_dorqueda, anchor = 'center')
+    canvas_paciente.create_image(canvas_width * 0.267, canvas_height * 0.4569, image = bg_dorqueda, anchor = 'center')
 
-    canvas_paciente.create_image(canvas_width * 0.267, canvas_height * 0.79, image = bg_dorqueda, anchor = 'center')
+    canvas_paciente.create_image(canvas_width * 0.267, canvas_height * 0.6462, image = bg_dorqueda, anchor = 'center')
+
+    canvas_paciente.create_image(canvas_width * 0.267, canvas_height * 0.8369, image = bg_dorqueda, anchor = 'center')
 
     canvas_paciente.create_image(canvas_width * 0.733, canvas_height * 0.65, image = bg_labirintite, anchor = 'center')
     
     canvas_paciente.create_image(canvas_width * 0.5, canvas_height * 0.65, image = bg_minibarra, anchor = 'center')
 
 
-    canvas_paciente.create_text(canvas_width * 0.267, canvas_height * 0.45, 
-                                text="NÍVEL DA DOR", font=("Inter", fontsize22, "bold"), fill="#5D6673")
+    canvas_paciente.create_text(canvas_width * 0.18, canvas_height * 0.455, 
+                                text="Nível da dor", font=("Inter", fontsize22-2, "bold"), fill="#5D6673")
     if tem_dor == "Sim":
-        canvas_paciente.create_text(canvas_width * 0.267, canvas_height * 0.54, 
-                                text=f"{nivel_dor}", font=("Inter", fontsize22+12, "bold"), fill="#0B2243")
+        canvas_paciente.create_text(canvas_width * 0.40, canvas_height * 0.455, 
+                                text=f"{nivel_dor}", font=("Inter", fontsize22+4, "bold"), fill="#0B2243")
     else:
-        canvas_paciente.create_text(canvas_width * 0.267, canvas_height * 0.54, 
-                                text=f"SEM DOR", font=("Inter", fontsize22+6, "bold"), fill="#0B2243")
+        canvas_paciente.create_text(canvas_width * 0.40, canvas_height * 0.455, 
+                                text=f"0", font=("Inter", fontsize22+4, "bold"), fill="#0B2243")
     
         
-    canvas_paciente.create_text(canvas_width * 0.267, canvas_height * 0.708, 
-                                text="EVENTOS DE QUEDA", font=("Inter", fontsize22, "bold"), fill="#5D6673", anchor = 'center')
-    canvas_paciente.create_text(canvas_width * 0.267, canvas_height * 0.753, 
-                                text="NO ÚLTIMO ANO", font=("Inter", fontsize22, "bold"), fill="#5D6673", anchor = 'center')
+    canvas_paciente.create_text(canvas_width * 0.21, canvas_height * 0.6462, 
+                                text="Eventos de queda\nno último ano", font=("Inter", fontsize22-4, "bold"), fill="#5D6673", anchor = 'center')
     if tem_queda == "Sim":
-        canvas_paciente.create_text(canvas_width * 0.267, canvas_height * 0.84, 
-                                text=f"{qtd_quedas}", font=("Inter", fontsize22+12, "bold"), fill="#0B2243")
+        canvas_paciente.create_text(canvas_width * 0.40, canvas_height * 0.6462, 
+                                text=f"{qtd_quedas}", font=("Inter", fontsize22+4, "bold"), fill="#0B2243")
     else:
-        canvas_paciente.create_text(canvas_width * 0.267, canvas_height * 0.84, 
-                                text=f"Nenhum", font=("Inter", fontsize22+6, "bold"), fill="#0B2243")
+        canvas_paciente.create_text(canvas_width * 0.40, canvas_height * 0.6462, 
+                                text=f"0", font=("Inter", fontsize22+4, "bold"), fill="#0B2243")
+        
+    canvas_paciente.create_text(canvas_width * 0.167, canvas_height * 0.8369, 
+                                text="Membro\nDominante", font=("Inter", fontsize22-4, "bold"), fill="#5D6673", anchor = 'center')
+    if membroDominante == "Direito":
+        canvas_paciente.create_text(canvas_width * 0.38, canvas_height * 0.8369, 
+                                text=f"{membroDominante}", font=("Inter", fontsize22, "bold"), fill="#0B2243")
+    else:
+        canvas_paciente.create_text(canvas_width * 0.36, canvas_height * 0.8369, 
+                                text=f"{membroDominante}", font=("Inter", fontsize22, "bold"), fill="#0B2243")
 
 
 
     canvas_paciente.create_text(canvas_width * 0.733, canvas_height * 0.44, 
-                                text=f"CRISE DE LABIRINTITE", font=("Inter", fontsize22, "bold"), fill="#5D6673", anchor = 'center')
+                                text=f"Crise de labirintite no", font=("Inter", fontsize22-3, "bold"), fill="#5D6673", anchor = 'center')
     canvas_paciente.create_text(canvas_width * 0.733, canvas_height * 0.485, 
-                                text=f"NO ÚLTIMO MÊS", font=("Inter", fontsize22, "bold"), fill="#5D6673", anchor = 'center')
+                                text=f"último mês", font=("Inter", fontsize22-3, "bold"), fill="#5D6673", anchor = 'center')
     if tem_labirintite == "Sim":
         canvas_paciente.create_text(canvas_width * 0.733, canvas_height * 0.57, 
-                                text=f"SIM", font=("Inter", fontsize22+3, "bold"), fill="#0B2243", anchor = 'center')
+                                text=f"SIM", font=("Inter", fontsize22, "bold"), fill="#0B2243", anchor = 'center')
     else:
         canvas_paciente.create_text(canvas_width * 0.733, canvas_height * 0.57, 
-                                text=f"NÃO", font=("Inter", fontsize22+3, "bold"), fill="#0B2243", anchor = 'center')
+                                text=f"NÃO", font=("Inter", fontsize22, "bold"), fill="#0B2243", anchor = 'center')
 
     
     canvas_paciente.create_text(canvas_width * 0.733, canvas_height * 0.69, 
-                                text=f"TRATAMENTO UTILIZADO", font=("Inter", fontsize22-2, "bold"), fill="#5D6673", anchor = 'center')
+                                text=f"Tratamento utilizado", font=("Inter", fontsize22-3, "bold"), fill="#5D6673", anchor = 'center')
     if tem_labirintite == "Sim":
         linhas = textwrap.wrap(tratamento_labirintite, width=19)[:3]  # Máximo de 3 linhas
 
     # Ajusta a posição para cada linha
         for i, linha in enumerate(linhas):
             canvas_paciente.create_text(canvas_width * 0.733, canvas_height * (0.76 + i * 0.05), 
-                                    text=linha, font=("Inter", fontsize22, "bold"), 
+                                    text=linha, font=("Inter", fontsize22-2, "bold"), 
                                     fill="#0B2243", anchor='center')
     else:
         canvas_paciente.create_text(canvas_width * 0.733, canvas_height * 0.8, 
-                                text=f"SEM TRATAMENTO", font=("Inter", fontsize22, "bold"), fill="#0B2243", anchor = 'center')
+                                text=f"SEM TRATAMENTO", font=("Inter", fontsize22-2, "bold"), fill="#0B2243", anchor = 'center')
 
     
-
-def exibir_dados_velocidade():
-    canvas_velocidade.delete("all")
-
-    canvas_width = canvas_velocidade.winfo_width()
-    canvas_height = canvas_velocidade.winfo_height()
-
-    vdcp, Dx, Dy = dados_velocidade_lista
-
-    canvas_velocidade.create_text(canvas_width * 0.5, canvas_height * 0.1, 
-                                text=f"Velocidade do Centro de Pressao: {str(round(vdcp,2))} cm/s", font=("Inter", fontsize22, "bold"), fill="#304462", anchor = "center")
-    canvas_velocidade.create_text(canvas_width * 0.5, canvas_height * 0.2, 
-                                text=f"DX: {str(round(Dx,2))}  |  DY: {str(round(Dy,2))}", font=("Inter", fontsize-1), fill="#656565")
 
 # Função para exibir o canvas correto
 def exibir_canvas(canvas):
     canvas_paciente.place_forget()
     canvas_distr_massas.place_forget()
-    canvas_velocidade.place_forget()
     canvas_emg.place_forget()
     canvas_centro_pressao.place_forget()
     
@@ -1882,11 +2321,10 @@ def exibir_canvas(canvas):
     if canvas == canvas_paciente:
         exibir_dados_paciente()
 
-        btn_paciente.config(fg="#e0e0e0", image=bg_btn_paciente_click)
+        btn_paciente.config(fg="#e0e0e0", image=bg_btn_click)
         btn_centro_pressao.configure(fg="#0B2243", image=bg_btn_resultado)
         btn_distr_massas.configure(fg="#0B2243", image=bg_btn_resultado)
         btn_emg.configure(fg="#0B2243", image=bg_btn_resultado)
-        btn_velocidade.configure(fg="#0B2243", image=bg_btn_resultado)
 
 #MARK: Função do botão Centro de pressão 
     if canvas == canvas_centro_pressao:
@@ -1894,21 +2332,29 @@ def exibir_canvas(canvas):
         canvas_width = canvas_centro_pressao.winfo_width()
         canvas_height = canvas_centro_pressao.winfo_height()
         
-        canvas_centro_pressao.create_text(canvas_width * 0.5, canvas_height * 0.1, 
-        text=f"Gráfico do Centro de pressão", font=("Inter", fontsize22, "bold"), fill="#304462", anchor = "center")
+        canvas_centro_pressao.create_text(canvas_width * 0.5, canvas_height * 0.1,
+        text=f"Gráfico do Centro de pressão (CdP)", font=("Inter", fontsize22, "bold"), fill="#304462", anchor = "center")
 
-        btn_paciente.config(fg="#0B2243", image = bg_btn_paciente)
+        vdcp, Dx, Dy = dados_velocidade_lista
+
+        canvas_centro_pressao.create_text(canvas_width * 0.85, canvas_height * 0.40, 
+                                text=f"Velocidade CdP:", font=("Inter", fontsize22-2, "bold"), fill="#304462", anchor = "center")
+        canvas_centro_pressao.create_text(canvas_width * 0.85, canvas_height * 0.46,
+                                text=f"{str(round(vdcp,2))} cm/s", font=("Inter", fontsize22-2, "bold"), fill="#304462", anchor = "center")
+        canvas_centro_pressao.create_text(canvas_width * 0.85, canvas_height * 0.56, 
+                                text=f"DX: {str(round(Dx,2))}\nDY: {str(round(Dy,2))}", font=("Inter", fontsize-1), fill="#656565")
+
+        btn_paciente.config(fg="#0B2243", image = bg_btn_resultado)
         btn_centro_pressao.configure(fg="#E0E0E0", image=bg_btn_click)
         btn_distr_massas.configure(fg="#0B2243", image=bg_btn_resultado)
         btn_emg.configure(fg="#0B2243", image=bg_btn_resultado)
-        btn_velocidade.configure(fg="#0B2243", image=bg_btn_resultado)
+
 
     if canvas == canvas_distr_massas:
-        btn_paciente.config(fg="#0B2243", image = bg_btn_paciente)
+        btn_paciente.config(fg="#0B2243", image = bg_btn_resultado)
         btn_centro_pressao.configure(fg="#0B2243", image=bg_btn_resultado)
         btn_distr_massas.configure(fg="#E0E0E0", image=bg_btn_click)
         btn_emg.configure(fg="#0B2243", image=bg_btn_resultado)
-        btn_velocidade.configure(fg="#0B2243", image=bg_btn_resultado)
 
     if canvas == canvas_emg:
         canvas_emg.delete("all")
@@ -1919,28 +2365,24 @@ def exibir_canvas(canvas):
         canvas_emg.create_text(canvas_width * 0.5, canvas_height * 0.1, 
         text=f"Gráfico EMG", font=("Inter", fontsize22, "bold"), fill="#304462", anchor = "center")
 
-        btn_paciente.config(fg="#0B2243", image = bg_btn_paciente)
+        btn_paciente.config(fg="#0B2243", image = bg_btn_resultado)
         btn_centro_pressao.configure(fg="#0B2243", image=bg_btn_resultado)
         btn_distr_massas.configure(fg="#0B2243", image=bg_btn_resultado)
         btn_emg.configure(fg="#E0E0E0", image=bg_btn_click)
-        btn_velocidade.configure(fg="#0B2243", image=bg_btn_resultado)
         canvas_emg.forget()
         canvasMatplot4.draw()
 
-    if canvas == canvas_velocidade:
-        exibir_dados_velocidade()
-
-        btn_paciente.config(fg="#0B2243", image = bg_btn_paciente)
-        btn_centro_pressao.configure(fg="#0B2243", image=bg_btn_resultado)
-        btn_distr_massas.configure(fg="#0B2243", image=bg_btn_resultado)
-        btn_emg.configure(fg="#0B2243", image=bg_btn_resultado)
-        btn_velocidade.configure(fg="#e0e0e0", image=bg_btn_click)
 
 # Array para armazenar os dados
 dados_salvos = []
 
 #MARK: SALVAR DADOS()
 def salvar_dados():
+
+    global D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11
+    global P0, P1, P2, P3, P4, P5, P6, P7
+    global allData0, allData1, allData2, allData3, allData4, allData5, allData6, allData7, allData8, allData9, allData10, allData11, allData12, allData13, allData14, allData15, allData16, allData17, allData18, allData19
+    global dxMax, dxMin, dyMax, dyMin
     
     vdcp = dados_velocidade_lista[0]
     Dx = dados_velocidade_lista[1]
@@ -1978,10 +2420,6 @@ def salvar_dados():
         'D5': allData5,
         'D6': allData6,
         'D7': allData7,
-        'D8': allData8,
-        'D9': allData9,
-        'D10': allData10,
-        'D11': allData11,
         'D12': allData12,
         'D13': allData13,
         'D14': allData14,
@@ -2025,18 +2463,6 @@ def check_box_event():
     if check_vars[3].get() == "on":
         ax4.plot(allData7, color='purple')
 
-    if check_vars[4].get() == "on":
-        ax4.plot(allData8, color='green')
-
-    if check_vars[5].get() == "on":
-        ax4.plot(allData9, color='pink')
-
-    if check_vars[6].get() == "on":
-        ax4.plot(allData10, color='black')
-
-    if check_vars[7].get() == "on":
-        ax4.plot(allData11, color='gray')
-
     canvasMatplot4.draw() #Desenha o grafico
     
 # Variável associada à CheckBox
@@ -2047,16 +2473,12 @@ checkbox_texts = [
     "Sensor 01",
     "Sensor 02",
     "Sensor 03",
-    "Sensor 04",
-    "Sensor 05",
-    "Sensor 06",
-    "Sensor 07",
-    "Sensor 08"
+    "Sensor 04"
 ]
 
 # Criação das CheckBoxes
 checkboxes = []
-for i in range(8):
+for i in range(4):
     checkbox = ctk.CTkCheckBox(
         canvas_emg,
         text=checkbox_texts[i],
@@ -2075,20 +2497,11 @@ for i in range(8):
         offvalue="off",
         command=lambda: check_box_event()  # Passa o índice da checkbox
     )
-    checkbox.place(relx=0.15, rely=0.27 + i * 0.08, anchor="center")
+    checkbox.place(relx=0.12, rely=0.42 + i * 0.08, anchor="center")
     checkboxes.append(checkbox)
 
 
 #Background Botões
-width_paciente = int((physical_width * 26.56) / 100)
-height_paciente = int((physical_height * 6.48) / 100)
-bg_btn_paciente1 = Image.open("UI/Resultado/btn_paciente_neutro.png")
-bg_btn_paciente1 = bg_btn_paciente1.resize((width_paciente, height_paciente), Image.Resampling.LANCZOS)
-bg_btn_paciente = ImageTk.PhotoImage(bg_btn_paciente1)
-
-bg_btn_paciente_click1 = Image.open("UI/Resultado/btn_paciente_click.png")
-bg_btn_paciente_click1 = bg_btn_paciente_click1.resize((width_paciente, height_paciente), Image.Resampling.LANCZOS)
-bg_btn_paciente_click = ImageTk.PhotoImage(bg_btn_paciente_click1)
 
 width_btn_resultado = int((physical_width * 12.24) / 100)
 height_btn_resultado = int((physical_height * 17.6) / 100)
@@ -2103,16 +2516,16 @@ btn_paciente = Button(
     text="PACIENTE",
     font=("Inter", fontsize22,"bold"),
     fg="#0B2243",
-    image=bg_btn_paciente,
-    width=(width_paciente-2),
-    height=(height_paciente-2),
+    image=bg_btn_resultado,
+    width=(width_btn_resultado-2),
+    height=(height_btn_resultado-2),
     compound="center",
     background= "#f8f8f8",
     bd=0,
     activeforeground="#E0E0E0",
     command=lambda: exibir_canvas(canvas_paciente)
 )
-btn_paciente.place(relx=0.1042, rely=0.2778, anchor = 'nw')
+btn_paciente.place(relx=0.1042, rely=0.32, anchor = 'nw')
 
 btn_centro_pressao = Button(
     tela_resultado,
@@ -2128,7 +2541,7 @@ btn_centro_pressao = Button(
     activeforeground="#E0E0E0",
     command=lambda: exibir_canvas(canvas_centro_pressao)
 )
-btn_centro_pressao.place(relx=0.1042, rely=0.376, anchor = 'nw')
+btn_centro_pressao.place(relx=0.1042, rely=0.532, anchor = 'nw')
 
 btn_distr_massas = Button(
     tela_resultado,
@@ -2144,23 +2557,7 @@ btn_distr_massas = Button(
     activeforeground="#E0E0E0",
     command=lambda: exibir_canvas(canvas_distr_massas)
 )
-btn_distr_massas.place(relx=0.2474, rely=0.3759, anchor = 'nw')
-
-btn_velocidade = Button(
-    tela_resultado,
-    text="VELOCIDADE",
-    font=("Inter", fontsize22,"bold"),
-    fg="#0B2243",
-    image=bg_btn_resultado,
-    background= "#f8f8f8",
-    width=(width_btn_resultado-2),
-    height=(height_btn_resultado-2),
-    compound="center",
-    bd=0,
-    activeforeground="#E0E0E0",
-    command=lambda: exibir_canvas(canvas_velocidade)
-)
-btn_velocidade.place(relx=0.1042, rely=0.5880, anchor = 'nw')
+btn_distr_massas.place(relx=0.2474, rely=0.32, anchor = 'nw')
 
 btn_emg = Button(
     tela_resultado,
@@ -2176,14 +2573,13 @@ btn_emg = Button(
     activeforeground="#E0E0E0",
     command=lambda: exibir_canvas(canvas_emg)
 )
-btn_emg.place(relx=0.2474, rely=0.5880, anchor = 'nw')
+btn_emg.place(relx=0.2474, rely=0.532, anchor = 'nw')
 
 def restart(frame): 
     frame.tkraise()
     canvas_paciente.delete("all")
     canvas_centro_pressao.delete("all")
     canvas_distr_massas.delete("all")
-    canvas_velocidade.delete("all")
     canvas_emg.delete("all")
 
 btn_voltarInicial = Button(
