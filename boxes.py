@@ -8,11 +8,9 @@ import customtkinter as ctk
 ############################################################################  SPIN BOX
 entrada = []
 
-# Spinbox customizada
 class CustomSpinbox(ctk.CTkFrame):
-    def __init__(self, master, min_value, max_value, step=1, screen_width = 1920, screen_height = 1080, new_value = 0, **kwargs):
-        super().__init__(master,fg_color="#0b2243", border_width=0, **kwargs)
-        
+    def __init__(self, master, min_value, max_value, step=1, screen_width=1920, screen_height=1080, new_value=0, **kwargs):
+        super().__init__(master, fg_color="#0b2243", border_width=0, **kwargs)
 
         # Atributos da Spinbox
         self.min_value = min_value
@@ -21,61 +19,88 @@ class CustomSpinbox(ctk.CTkFrame):
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.current_value = IntVar(value=new_value)
-        
-        fontsize = int((self.screen_height * 1.4) / 100)
+
+        fontsize = int((self.screen_height * 1.7) / 100)  # Fonte padrão
+        fontsize_large = int((self.screen_height * 1.7) / 100)  # Fonte maior para "+" e "-"
 
         # Personalizações
-        self.btn_color = "#0b2243"               # Cor de fundo dos botões
-        self.btn_text_color = "#e0e0e0"           # Cor do texto dos botões
-        self.font = ("Intern", fontsize, "bold")       # Fonte e estilo do texto
-        self.border_color="#a7bbcb"                 # Cor da borda
-        self._border_width=0                        # Tamanho da borda
-        self.btn_hover_color = "#304462"            # Hover do botão
-        self.columnconfigure((0, 2), weight=1)
-        
-        
-        # Botão para diminuir o valor
-        self.decrement_button = ctk.CTkButton(
-            self, text="-", width=int(self.screen_width * 2/100),height= (screen_height * 3 /100), fg_color=self.btn_color, 
-            text_color=self.btn_text_color, font=self.font, hover_color=self.btn_hover_color,
-            command=self.decrement)
-        self.decrement_button.grid(row=0, column=0, padx=2, pady=5)
-        
-        # Entrada para mostrar e editar o valor
-        self.entry = ctk.CTkEntry(
-            self, textvariable=self.current_value, width=(self.screen_width * 3/100), height= (screen_height * 3.5 /100),
-            font=self.font, justify="center", border_color=self.border_color, border_width=self._border_width, fg_color="#FFFFFF", text_color="#2F2F2F",)
-        self.entry.grid(row=0, column=1, padx=2, pady=5)
-        self.entry.bind("<FocusOut>", self.validate_value)
-        entrada.append(self.entry)
-        self.validate_value(new_value)
-        
+        self.btn_color = "#0b2243"  
+        self.btn_text_color = "#e0e0e0"  
+        self.font = ("Intern", fontsize, "bold")  # Fonte normal
+        self.font_large = ("Intern", fontsize_large, "bold")  # Fonte maior para "+" e "-"
+        self.border_color = "#a7bbcb"  
+        self._border_width = 0  
+        self.btn_hover_color = "#304462"  
+        self.columnconfigure((0, 1, 2, 3, 4), weight=1)
 
-        # Botão para aumentar o valor
+        button_width = int(self.screen_width * 1.5 / 100)  
+        button_height = int(screen_height * 2.7 / 100)  
+        entry_width = int(self.screen_width * 2.1 / 100)  
+
+        # Botão "<" (diminuir -10)
+        self.decrement_by_10_button = ctk.CTkButton(
+            self, text="<<", width=button_width, height=button_height,
+            fg_color=self.btn_color, text_color=self.btn_text_color, font=self.font, hover_color=self.btn_hover_color,
+            command=self.decrement_by_10)
+        self.decrement_by_10_button.grid(row=0, column=0, padx=1, pady=5)
+
+        # Botão "-" (diminuir 1) - Fonte maior
+        self.decrement_button = ctk.CTkButton(
+            self, text="<", width=button_width, height=button_height,
+            fg_color=self.btn_color, text_color=self.btn_text_color, font=self.font_large, hover_color=self.btn_hover_color,
+            command=self.decrement)
+        self.decrement_button.grid(row=0, column=1, padx=1, pady=5)
+
+        # Entrada de valor
+        self.entry = ctk.CTkEntry(
+            self, textvariable=self.current_value, width=entry_width, height=(screen_height * 3 / 100),
+            font=self.font, justify="center", border_color=self.border_color, border_width=self._border_width,
+            fg_color="#FFFFFF", text_color="#2F2F2F")
+        self.entry.grid(row=0, column=2, padx=2, pady=5)
+        self.entry.bind("<FocusOut>", self.validate_value)
+
+        # Botão "+" (aumentar 1) - Fonte maior
         self.increment_button = ctk.CTkButton(
-            self, text="+", width=int(self.screen_width * 2/100), height= (screen_height * 3 /100), fg_color=self.btn_color, 
-            text_color=self.btn_text_color, font=self.font, hover_color=self.btn_hover_color,
+            self, text=">", width=button_width, height=button_height,
+            fg_color=self.btn_color, text_color=self.btn_text_color, font=self.font_large, hover_color=self.btn_hover_color,
             command=self.increment)
-        self.increment_button.grid(row=0, column=2, padx=2, pady=5)
-    
+        self.increment_button.grid(row=0, column=3, padx=1, pady=5)
+
+        # Botão ">" (aumentar +10)
+        self.increment_by_10_button = ctk.CTkButton(
+            self, text=">>", width=button_width, height=button_height,
+            fg_color=self.btn_color, text_color=self.btn_text_color, font=self.font, hover_color=self.btn_hover_color,
+            command=self.increment_by_10)
+        self.increment_by_10_button.grid(row=0, column=4, padx=1, pady=5)
+
     def increment(self):
         value = self.current_value.get()
         if value < self.max_value:
             self.current_value.set(value + self.step)
-            if value < self.min_value:
-                self.current_value.set(self.min_value)
-        if value > self.max_value:
+        if self.current_value.get() > self.max_value:
             self.current_value.set(self.max_value)
 
     def decrement(self):
         value = self.current_value.get()
         if value > self.min_value:
             self.current_value.set(value - self.step)
-            if value > self.max_value:
-                self.current_value.set(self.max_value)
-        if value < self.min_value:
-                self.current_value.set(self.min_value)
-    
+        if self.current_value.get() < self.min_value:
+            self.current_value.set(self.min_value)
+
+    def increment_by_10(self):
+        value = self.current_value.get()
+        if value + 10 <= self.max_value:
+            self.current_value.set(value + 10)
+        else:
+            self.current_value.set(self.max_value)
+
+    def decrement_by_10(self):
+        value = self.current_value.get()
+        if value - 10 >= self.min_value:
+            self.current_value.set(value - 10)
+        else:
+            self.current_value.set(self.min_value)
+
     def validate_value(self, event=None):
         try:
             value = int(self.entry.get())
@@ -84,15 +109,15 @@ class CustomSpinbox(ctk.CTkFrame):
             elif value > self.max_value:
                 self.current_value.set(self.max_value)
         except ValueError:
-            self.current_value.set(self.min_value)  # Volta ao mínimo se valor inválido
-       
-        
-    
-    def set(self,new_value, **kwargs):
-        self.current_value=IntVar(value=new_value)
-    
+            self.current_value.set(self.min_value)
+
+    def set(self, new_value):
+        self.current_value.set(new_value)
+
     def get(self):
-        return self.current_value.get() 
+        return self.current_value.get()
+
+
 
 ############################################################################################# COMBO BOX
 
