@@ -1250,7 +1250,7 @@ btn_iniciarColeta = Button(
     bd=0,
     state="disabled",
     activeforeground="#f7c360",
-    command=lambda: ManterColeta()
+    command=lambda: ManterColeta() #show_frame(tela_carregamento) #Com o teensy mudar para ManterColeta()
 )
 btn_iniciarColeta.place(relx=0.7969, rely=0.8611)
 
@@ -1915,6 +1915,8 @@ def ColetarDados():
     fim = time.time()
     Dados_Tempo = fim - start
 
+    AvancarResultados()
+
 
 #MARK: TELA CARREGAMENTO ---------------------------------------------------------------------------------------------------------------------------
 
@@ -2180,7 +2182,7 @@ def AvancarResultados():
     global dados_velocidade_lista
 
     #MARK: Definindo como 0 para teste sem o teensy
-    Dados_Tempo = 5
+    #Dados_Tempo = 5
 
     n = 0
     Dt = 0
@@ -2205,12 +2207,11 @@ def AvancarResultados():
 
     salvar_dados()
 
-
   ##############################################################################################          
 
 btn_avancarResultado = Button(
     tela_carregamento,
-    text="RESULTADOS",
+    text="AGUARDE...",
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
@@ -2220,7 +2221,6 @@ btn_avancarResultado = Button(
     bd=0,
     activeforeground="#f7c360",
     #MARK: Botão para carregar o arquivo do excel
-    command=lambda: AvancarResultados()
 )
 btn_avancarResultado.place(relx=0.7969, rely=0.8611)
 
@@ -2505,11 +2505,11 @@ def salvar_dados():
     # Obtendo data e hora atuais para o nome do arquivo no formato DD MM AAAA
     timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
     nome_arquivo = f"{nome}_{timestamp}_dados.xlsx"
-    caminho_arquivo = os.path.join(pasta_paciente, nome_arquivo)
+    file_path = os.path.join(pasta_paciente, nome_arquivo)
     
     try:
-        df.to_excel(caminho_arquivo, engine='openpyxl')
-        messagebox.showinfo(title=None, message=f"Salvo com sucesso em:\n{caminho_arquivo}")
+        df.to_excel(file_path, engine='openpyxl')
+        messagebox.showinfo(title=None, message=f"Salvo com sucesso em:\n{file_path}")
     except Exception as e:
         print(f"Erro ao salvar: {e}")
 
@@ -2518,7 +2518,7 @@ def salvar_dados():
 
 def DM_resultados():
     
-    global numDM, Dados, nLinhas, nColunas,z, loopDis, file_path
+    global numDM, Dados, nLinhas, nColunas, z, loopDis, file_path
     
     #list_of_files = glob.glob('*.xlsx') #* means all if need specific format then #.csv
     #latest_file = max(list_of_files, key= os.path.getctime)

@@ -1702,7 +1702,7 @@ btn_iniciarCarregamento = Button(
     compound="center",
     bd=0,
     activeforeground="#f7c360",
-    command=lambda: show_frame(tela_carregamento) #Com o teensy mudar para ManterColeta()
+    command=lambda: ManterColeta() #show_frame(tela_carregamento) #Com o teensy mudar para ManterColeta()
 )
 btn_iniciarCarregamento.place(relx=0.7969, rely=0.8611)
 
