@@ -29,7 +29,6 @@ import textwrap
 import pyautogui
 from screeninfo import get_monitors
 
-
 # Ajuste de DPI
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
@@ -43,14 +42,9 @@ scale_factor = dpi / 100
 
 # Obtendo monitores
 monitors = get_monitors()
-if len(monitors) < 2:
-    print("É necessário pelo menos dois monitores.")
-    exit()
+monitor_principal = monitors[0]  # Monitor principal
 
-monitor1 = monitors[1]
-monitor2 = monitors[0]  # Segundo monitor
-
-# Criando a Janela Principal (Monitor 1)
+# Criando a Janela Principal (Sempre no Monitor Principal)
 root = ctk.CTk()
 root.title("EquiSystem K2000")
 screen_width = int(physical_width / scale_factor)
@@ -65,19 +59,24 @@ root.iconbitmap("UI/icon.ico")
 myappid = "K2000.V1"
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
-# Criando a Janela Secundária (Monitor 2)
-second_window = ctk.CTkToplevel(root)
-second_window.geometry(f"{monitor2.width}x{monitor2.height}+{monitor2.x}+{monitor2.y}")
-second_window.overrideredirect(True)  # Remove bordas da janela
-second_window.attributes("-topmost", True)  # Mantém a janela sempre no topo
+# Se houver pelo menos dois monitores, cria a janela secundária
+if len(monitors) > 1:
+    monitor_secundario = monitors[0]  # Segundo monitor
 
-# Carregar a imagem de fundo para o segundo monitor
-bg_inicial1 = Image.open("UI/bg_inicial.png")
-bg_inicial1 = bg_inicial1.resize((monitor2.width, monitor2.height), Image.LANCZOS)
-bg_inicial = ImageTk.PhotoImage(bg_inicial1)
+    # Criando a Janela Secundária (Monitor 2)
+    second_window = ctk.CTkToplevel(root)
+    second_window.geometry(f"{monitor_secundario.width}x{monitor_secundario.height}+{monitor_secundario.x}+{monitor_secundario.y}")
+    second_window.overrideredirect(True)  # Remove bordas da janela
+    second_window.attributes("-topmost", True)  # Mantém a janela sempre no topo
 
-bg_label = ctk.CTkLabel(second_window, image=bg_inicial, text="")
-bg_label.pack(fill="both", expand=True)
+    # Carregar a imagem de fundo para o segundo monitor
+    bg_inicial1 = Image.open("UI/bg_inicial.png")
+    bg_inicial1 = bg_inicial1.resize((monitor_secundario.width, monitor_secundario.height), Image.LANCZOS)
+    bg_inicial = ImageTk.PhotoImage(bg_inicial1)
+
+    bg_label = ctk.CTkLabel(second_window, image=bg_inicial, text="")
+    bg_label.pack(fill="both", expand=True)
+
 
 # Criando as telas do software principal
 tela_inicial = ctk.CTkFrame(root)
@@ -598,10 +597,10 @@ def armazenar_dados():
 
 #MARK: Carregar perfil
 def CarregarPerfil():
+    global allData4, allData5, allData6, allData7, allData8, allData9, allData10, allData11, numDM, Dados, nLinhas, nColunas,z, loopDis
+
     filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
     Dados = pd.read_excel(filename)
-
-    global allData4, allData5, allData6, allData7, allData8, allData9, allData10, allData11
 
     allData4 = [0]
     allData5 = [0]
@@ -628,6 +627,7 @@ def CarregarPerfil():
     qtd_quedas = Dados.Quantidade_de_quedas[0]
     tem_labirintite = Dados.Labirintite[0]
     tratamento_labirintite = Dados.Tratamento_de_labirintite[0]
+    membro_dominante = Dados.Membro_dominante[0]
     vdcp = Dados.Tempo[0]
     Dx = Dados.Dx[0]
     Dy = Dados.Dy[0]
@@ -694,16 +694,211 @@ def CarregarPerfil():
     ax2.plot(lineX, lineY, color='#A7BBCB')
     ax2.plot(Dados_CopX, Dados_CopY, color='#304462')
 
+    ax2.set_xlabel("Deslocamento em X [cm]", fontsize = fontsize14-3, color = "#304462", labelpad = 10, fontname = "Arial", fontweight = "bold")
+    ax2.set_ylabel("Deslocamento em Y [cm]", fontsize = fontsize14-3, color = "#304462", labelpad = 8, fontname = "Arial", fontweight = "bold")
+
+    
+    ax4.set_xlabel("X amostras/s", fontsize = fontsize14-3, color = "#304462", labelpad = 10, fontname = "Arial", fontweight = "bold")
+    ax4.set_ylabel("Y intensidade [mV]", fontsize = fontsize14-3, color = "#304462", labelpad = 10, fontname = "Arial", fontweight = "bold")
+
     canvasMatplot2.draw() #Desenha o grafico
     
     global dados_paciente_lista
-    dados_paciente_lista = [nome_paciente, idade_paciente, altura_paciente, peso_paciente, sexo_paciente, tem_dor, nivel_dor, tem_queda, qtd_quedas, tem_labirintite, tratamento_labirintite]
+    dados_paciente_lista = [nome_paciente, idade_paciente, altura_paciente, peso_paciente, sexo_paciente, tem_dor, nivel_dor, tem_queda, qtd_quedas, tem_labirintite, tratamento_labirintite, membro_dominante]
 
     global dados_velocidade_lista
     dados_velocidade_lista = [vdcp, Dx, Dy]
 
+    ####
+
+    numDM = 0
+    nLinhas = 50
+    nColunas = 30
+    z = np.zeros((nLinhas,nColunas))
+    loopDis = 1
+
+    root.after(100, ColetarDis)
+
+    ####
+
     show_frame(tela_resultado)
     exibir_canvas(canvas_paciente)
+
+    ####################################################################### DISTRIBUIÇÃO DE MASSA ####################################################################
+
+def ColetarDis():
+
+    global Dados, numDM, nLinhas, nColunas,z, loopDis
+
+    
+
+    ax6.clear() #Limpa o grafico
+    
+    P0 = Dados.D12[numDM]
+    P1 = Dados.D13[numDM]
+    P2 = Dados.D14[numDM]
+    P3 = Dados.D15[numDM]
+
+    P4 = Dados.D16[numDM]
+    P5 = Dados.D17[numDM]
+    P6 = Dados.D18[numDM]
+    P7 = Dados.D19[numDM]
+
+    ########################### Valor de Teste ####################################
+
+    #P0 = 1000
+    #P1= 000
+    #P2 = 000
+    #P3 = 1000
+
+    #P4 = 1000
+    #P5= 1000
+    #P6 = 1000
+    #P7 = 1000
+
+    ##############################################################################
+
+    DxP0= 16.8
+    DyP0= 16
+    DxP1= 3.4
+    DyP1= 16.5
+    DxP2= 3.4
+    DyP2= 16
+    DxP3= 17
+    DyP3= 16
+
+    DxP4= 3.5
+    DyP4= 16
+    DxP5= 17
+    DyP5= 15.5
+    DxP6= 17
+    DyP6= 16
+    DxP7= 3.8
+    DyP7= 16
+
+    DX = 10
+    DY = 20
+
+    DSX = 20 / nColunas
+    DSY = 40 / nLinhas
+
+    nLinhas = nLinhas + 1
+    nColunas = nColunas + 1
+
+    nColunas2 = math.ceil(nColunas/2)
+
+
+######################################## Calculo do Centro de Pressão ####################################
+
+    CopXe = 0
+    CopYe = 0
+    CopYd = 0
+    CopXd = 0
+   
+    if (P0+P1+P2+P3) > 0:
+        CopXe = (P1*DX + P2*DX - P0*DX - P3+DX)/(P0+P1+P2+P3)
+        CopYe = (P0*DY + P1*DY - P2*DY - P3*DY)/(P0+P1+P2+P3)
+        
+
+    if (P4+P5+P6+P7) > 0:   
+        CopYd = (P4*DY + P5*DY - P6*DY - P7*DY)/(P4+P5+P6+P7)
+        CopXd = (P5*DX + P6*DX - P4*DX - P7+DX)/(P4+P5+P6+P7)
+
+    DMXesquerdo = round(((CopXe + 10) * (nColunas/4))/10)
+    DMYesquerdo = round(((CopYe + 20) * (nLinhas/2))/20)
+
+    DMXdireita = (round(((CopXd + 10) * (nColunas/4))/10))
+    DMYdireita = round(((CopYd + 20) * (nLinhas/2))/20)
+
+    #print(f"DMXesquerdo: {DMXesquerdo}, DMYesquerdo: {(DMYesquerdo)}, DMXdireita: {DMXdireita}, DMYdireita: {(DMYdireita)}")
+
+    CorEsq = (P0+P1+P2+P3)/(P0+P1+P2+P3+P4+P5+P6+P7)
+    CorDir = (P4+P5+P6+P7)/(P0+P1+P2+P3+P4+P5+P6+P7)
+
+    #CorEsqX = (CorEsq/2) / math.ceil(nColunas/2)
+    CorEsqX = (CorEsq/2)
+    #CorEsqY = (CorEsq/2) / nLinhas
+    CorEsqY = (CorEsq/2)
+
+    CorDirX = (CorDir/2)
+    CorDirY = (CorDir/2)
+
+######################################### Calculo da Distribuição de Massa ################################ 
+
+    for Y in range(1,(nLinhas)):
+        for X in range(1,(nColunas)):
+
+            if X <= nColunas/2:
+
+                z[Y-1][X-1] = (P0/(X*DSX) + P0/(Y*DSY) + P1/(math.ceil(nColunas2 - X)*DSX) + P1/(Y*DSY) + P2/(math.ceil(nColunas2 - X)*DSX) + P2/(math.ceil(nLinhas - Y)*DSY) + P3/(X*DSX) + P3/(math.ceil(nLinhas - Y)*DSY)) / ((((P0+P1+P2+P3+P4+P5+P6+P7)/DSX)+((P0+P1+P2+P3+P4+P5+P6+P7)/DSY)))
+
+                try:
+                    ValorEsqX = CorEsqX / (math.ceil(nColunas2)/(math.ceil(nColunas2) - abs(DMXesquerdo - X)))
+
+                except:
+                    ValorEsqX = CorEsqX / (math.ceil(nColunas2)/0.0001)
+
+                try:
+                    ValorEsqY = CorEsqY / (math.ceil(nLinhas-1)/(math.ceil(nLinhas-1) - abs(DMYesquerdo - Y)))
+
+                except:
+                    ValorEsqY = CorEsqY / (math.ceil(nLinhas-1)/0.0001)
+                
+                z[Y-1][X-1] =+ (ValorEsqX + ValorEsqY)
+
+            else:
+
+                X2=math.ceil(X-(nColunas/2))
+
+
+                z[Y-1][X-1] = (P4/(X2*DSX) + P4/(Y*DSY) + P5/(math.ceil(nColunas2 - X2)*DSX) + P5/(Y*DSY) + P6/(math.ceil(nColunas2 - X2)*DSX) + P6/(math.ceil(nLinhas - Y)*DSY) + P7/(X2*DSX) + P7/(math.ceil(nLinhas - Y)*DSY)) / ((((P0+P1+P2+P3+P4+P5+P6+P7)/DSX)+((P0+P1+P2+P3+P4+P5+P6+P7)/DSY)))
+
+                try:
+                    ValorDirX = CorDirX / (math.ceil(nColunas2)/(math.ceil(nColunas2) - abs(DMXdireita - X2)))
+                except:
+                    ValorDirX = CorDirX / (math.ceil(nColunas2)/0.0001)
+
+                try:
+                    ValorDirY = CorDirY / (math.ceil(nLinhas-1)/(math.ceil(nLinhas-1) - abs(DMYdireita - Y)))
+                except:
+                    ValorDirY = CorDirY / (math.ceil(nLinhas-1)/0.0001)
+                
+
+                z[Y-1][X-1] =+ (ValorDirX + ValorDirY)
+
+
+    #z[DMYesquerdo][DMXesquerdo] =+ CorEsq   
+    #z[DMYdireita][DMXdireita + nColunas2] =+ CorDir         
+
+    #print(z[DMYdireita][DMXdireita])
+
+###########################################################################
+
+    nLinhas = nLinhas - 1
+    nColunas = nColunas - 1
+
+    #print(z[0])
+
+    #z = np.flipud(z)
+    
+    c = ax6.pcolor(z, cmap='jet', vmin=0, vmax=1)
+    c.axes.set_axis_off()
+
+    fig6.tight_layout()
+    plt.show()
+    
+    canvasMatplot6.draw() #Desenha o grafico
+
+    numDM = numDM + 250
+
+    if numDM > len(Dados.D0):
+        numDM = 1
+
+    if loopDis == 1:
+        root.after(250, ColetarDis)
+
+##################################################################
+
 
 # Função para exibir os dados salvos na tela de resultado
 def dados_paciente(tela):
@@ -1049,6 +1244,26 @@ def play_gif(label, gif_path, size=(300, 300)):  # Define o tamanho desejado
 
     update(0)  # Inicia a animação
 
+btn_iniciarColeta = Button(
+    tela_parametros,
+    text="COLETAR",
+    font=("Inter", fontsize,"bold"),
+    fg="#E0E0E0",
+    image=bg_btn,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
+    compound="center",
+    bd=0,
+    state="disabled",
+    activeforeground="#f7c360",
+    command=lambda: ManterColeta()
+)
+btn_iniciarColeta.place(relx=0.7969, rely=0.8611)
+
+global iniciarColeta
+iniciarColeta = 0
+
+
 def mostrar_movimentacao():
     canvas_movimentacao.place(relx=0.3453,rely=0.3491,anchor="nw")  # Exibe o canvas de movimentação
     canvas_oscilacao.place_forget()  # Oculta o canvas de oscilação
@@ -1135,16 +1350,24 @@ def configurar_canvas_movimentacao():
     matriz_parametros[index_radio][6] = 0
 
     def confirmar_mov():
+        global iniciarColeta
+        
         valores = [
             mov_tempo_i.current_value.get(),  # Tempo inicial
             mov_tempo_f.current_value.get(),  # Tempo final
             mov_vel.current_value.get(),      # Velocidade
             mov_x.current_value.get(),        # Ângulo X
             mov_y.current_value.get(),        # Ângulo Y
-    ]
-    
+        ]
+        
         for j, valor in enumerate(valores):
             matriz_parametros[index_radio][j+1] = valor
+
+        iniciarColeta = 1 
+
+        if iniciarColeta >= 1:
+            btn_iniciarColeta.configure(state='normal', activeforeground="#f7c360")
+            print("Botão ativado!")
 
         print(f"Matriz atualizada: {matriz_parametros}")
 
@@ -1243,6 +1466,8 @@ def configurar_canvas_oscilacao():
     osc_miny.place(relx=0.87, rely = 0.6472, anchor = "center")
 
     def confirmar_osc():
+        global iniciarColeta
+
         valores = [
             osc_maxx.current_value.get(),  # Max X
             osc_minx.current_value.get(),  # Min X
@@ -1254,6 +1479,11 @@ def configurar_canvas_oscilacao():
     
         for j, valor in enumerate(valores):
             matriz_parametros[index_radio][j+1] = valor
+        
+        iniciarColeta = 1  # Agora realmente modifica a variável global
+
+        if iniciarColeta >= 1:
+            btn_iniciarColeta.configure(state='normal')
 
         print(f"Matriz atualizada: {matriz_parametros}")
 
@@ -1292,7 +1522,7 @@ def limpar_widgets():
     combobox_criada.clear()
 
 def carregar_presets():
-    global matriz_parametros
+    global matriz_parametros, iniciarColeta
 
     # Defina aqui a matriz predefinida
     matriz_parametros = [['O', 0, 0, 10, 3, 10, -10],
@@ -1305,6 +1535,11 @@ def carregar_presets():
     # Criar os novos widgets com base na matriz
     for i in range(len(matriz_parametros)):
         gerar_widgets(rotina, 1, var, i)
+    
+    iniciarColeta = 1  # Agora realmente modifica a variável global
+
+    if iniciarColeta >= 1:
+        btn_iniciarColeta.configure(state='normal')  # Habilita o botão corretamente
     
     messagebox.showinfo(title=None, message="Carregamento de predefinição concluído")
 
@@ -1389,7 +1624,7 @@ def ManterColeta():
 
     os.startfile("Supervisorio.exe")  #Executa o programa de coleta de dados
     time.sleep(1) #Espera 1 segundo para o programa abrir e se conectar
-    ard1.write(str.encode('#andre9,0,0,5\n')) # Nome do arquivo em que será salvo os dados (precisa ter o # antes)
+    ard1.write(str.encode('#EquiSystem,0,0,5\n')) # Nome do arquivo em que será salvo os dados (precisa ter o # antes)
     time.sleep(1) # Espera 1 segundo para o arquivo ser criado
     ard1.write(str.encode('I,0,0,5\n')) #Inicia a coleta
 
@@ -1689,20 +1924,7 @@ def ColetarDados():
 
 #MARK: TELA CARREGAMENTO ---------------------------------------------------------------------------------------------------------------------------
 
-btn_iniciarCarregamento = Button(
-    tela_parametros,
-    text="COLETAR",
-    font=("Inter", fontsize,"bold"),
-    fg="#E0E0E0",
-    image=bg_btn,
-    width=((physical_width * 9.9) / 100)-2,
-    height=((physical_height * 9.26) / 100)-2,
-    compound="center",
-    bd=0,
-    activeforeground="#f7c360",
-    command=lambda: ManterColeta() #show_frame(tela_carregamento) #Com o teensy mudar para ManterColeta()
-)
-btn_iniciarCarregamento.place(relx=0.7969, rely=0.8611)
+
 
 def PararColeta():
     global loopColeta
@@ -1823,181 +2045,15 @@ ax6 = fig6.add_subplot()
 
 canvas_grafico_massa = Canvas(canvas_distr_massas, 
     width=(physical_width * 46)/100, 
-    height=(physical_height * 60)/100, 
+    height=(physical_height * 50)/100, 
     bg="#ffffff",
     highlightthickness=6,
     highlightcolor="#A7BBCB",
     highlightbackground="#A7BBCB")
-canvas_grafico_massa.place(relx=0.38, rely=0.5, anchor="center")  # Centralizado na tela
+canvas_grafico_massa.place(relx=0.44, rely=0.525, anchor="center")  # Centralizado na tela
 
 canvasMatplot6 = FigureCanvasTkAgg(fig6, master = canvas_grafico_massa)
 canvasMatplot6.get_tk_widget().pack()
-
-
-#MARK: Ler Arquivo() --------------------------------------------------------------------------------------------------------------------------------------
-
-def LerArquivo():
-
-    global D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11
-    global P0, P1, P2, P3, P4, P5, P6, P7
-    global allData0, allData1, allData2, allData3, allData4, allData5, allData6, allData7, allData8, allData9, allData10, allData11, allData12, allData13, allData14, allData15, allData16, allData17, allData18, allData19
-    global dxMax, dxMin, dyMax, dyMin
-
-    allData0 = [0]
-    allData1 = [0]
-    allData2 = [0]
-    allData3 = [0]
-    allData4 = [0]
-    allData5 = [0]
-    allData6 = [0]
-    allData7 = [0]
-    allData8 = [0]
-    allData9 = [0]
-    allData10 = [0]
-    allData11 = [0]
-    allData12 = [0]
-    allData13 = [0]
-    allData14 = [0]
-    allData15 = [0]
-    allData16 = [0]
-    allData17 = [0]
-    allData18 = [0]
-    allData19 = [0]
-    
-    Dados_CopX = [0]
-    Dados_CopY = [0]
-    
-    ax2.clear() #Limpa o grafico
-    ax4.clear()
-
-    list_of_files = glob.glob('*.txt') # * means all if need specific format then *.csv
-    latest_file = max(list_of_files, key=os.path.getctime)
-
-    with open(latest_file) as file:
-        Dados = csv.reader(file)
-
-        for row in Dados:
-
-            valueSplit = str(row).split(",")
-
-            if len(valueSplit) == 20:
-
-                D0 = re.sub("[^A-Z]", "", valueSplit[0])
-                D1 = float(re.sub("[^0-9]", "", valueSplit[1]))
-                D2 = float(re.sub("[^0-9]", "", valueSplit[2]))
-                D3 = float(re.sub("[^0-9]", "", valueSplit[3]))
-                
-                #Dados EMG
-                D4 = float(re.sub("[^0-9]", "", valueSplit[4]))
-                D5 = float(re.sub("[^0-9]", "", valueSplit[5]))
-                D6 = float(re.sub("[^0-9]", "", valueSplit[6]))
-                D7 = float(re.sub("[^0-9]", "", valueSplit[7]))
-                D8 = float(re.sub("[^0-9]", "", valueSplit[8]))
-                D9 = float(re.sub("[^0-9]", "", valueSplit[9]))
-                D10 = float(re.sub("[^0-9]", "", valueSplit[10]))
-                D11 = float(re.sub("[^0-9]", "", valueSplit[11]))
-                
-                #Dados COP
-                P0 = float(re.sub("[^0-9]", "", valueSplit[12]))
-                P1 = float(re.sub("[^0-9]", "", valueSplit[13]))
-                P2 = float(re.sub("[^0-9]", "", valueSplit[14]))
-                P3 = float(re.sub("[^0-9]", "", valueSplit[15]))
-
-                P4 = float(re.sub("[^0-9]", "", valueSplit[16]))
-                P5 = float(re.sub("[^0-9]", "", valueSplit[17]))
-                P6 = float(re.sub("[^0-9]", "", valueSplit[18]))
-                P7 = float(re.sub("[^0-9]", "", valueSplit[19]))
-
-                allData0.append(D0)
-                allData1.append(D1)
-                allData2.append(D2)
-                allData3.append(D3)
-                allData4.append(D4)
-                allData5.append(D5)
-                allData6.append(D6)
-                allData7.append(D7)
-                allData8.append(D8)
-                allData9.append(D9)
-                allData10.append(D10)
-                allData11.append(D11)
-                allData12.append(P0)
-                allData13.append(P1)
-                allData14.append(P2)
-                allData15.append(P3)
-                allData16.append(P4)
-                allData17.append(P5)
-                allData18.append(P6)
-                allData19.append(P7)
-
-                DxP0= 16.8
-                DyP0= 16
-                DxP1= 3.4
-                DyP1= 16.5
-                DxP2= 3.4
-                DyP2= 16
-                DxP3= 17
-                DyP3= 16
-
-                DxP4= 3.5
-                DyP4= 16
-                DxP5= 17
-                DyP5= 15.5
-                DxP6= 17
-                DyP6= 16
-                DxP7= 3.8
-                DyP7= 16
-
-                if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
-                    CopX = (P4*DxP4 + P5*DxP5 + P6*DxP6 + P7*DxP7 - P0*DxP0 - P1*DxP1 - P2*DxP2 - P3*DxP3)/(P0+P1+P2+P3+P4+P5+P6+P7)
-                    Dados_CopX.append(CopX)
-                
-                if (P0+P1+P2+P3+P4+P5+P6+P7) > 0:
-                    CopY = (P0*DyP0 + P1*DyP1 + P4*DyP4 + P5*DyP5 - P2*DyP2 - P3*DyP3 - P6*DyP6 - P7*DyP7)/(P0+P1+P2+P3+P4+P5+P6+P7)
-                    Dados_CopY.append(CopY)
-                    
-
-    dxMax = max(Dados_CopX)
-    dxMin = min(Dados_CopX)
-    dyMax = max(Dados_CopY)
-    dyMin = min(Dados_CopY)
-
-    Dx = dxMax - dxMin
-    Dy = dyMax - dyMin
-    
-    lineX = [0, 0, -20, -20, 20, 20, 0]
-    lineY = [20, -20, -20, 20, 20, -20, -20]
-    ax2.plot(lineX, lineY, color='#A7BBCB')
-    ax2.plot(Dados_CopX, Dados_CopY, color='#304462')
-
-    canvasMatplot2.draw() #Desenha o grafico
-
-    global dados_velocidade_lista
-
-    #MARK: Definindo como 0 para teste sem o teensy
-    Dados_Tempo = 5
-
-    n = 0
-    Dt = 0
-
-    while n < (len(Dados_CopX))-2:
-
-        x1 = Dados_CopX[(n+1)]
-        x2 = Dados_CopX[((n+1) + 1)]
-
-        y1 = Dados_CopY[(n+1)]
-        y2 = Dados_CopY[((n+1) + 1)]
-
-        d = math.sqrt((x1-x2) **2 + (y1-y2) **2)
-
-        Dt = Dt + d
-
-        n = n + 1
-
-    vdcp = Dt / Dados_Tempo
-
-    dados_velocidade_lista = [vdcp, Dx, Dy]
-
-    salvar_dados()
 
 #MARK: Ler Arquivo() --------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2351,6 +2407,55 @@ def exibir_canvas(canvas):
 
 
     if canvas == canvas_distr_massas:
+        canvas_width = canvas_distr_massas.winfo_width()
+        canvas_height = canvas_distr_massas.winfo_height()
+
+        canvas_distr_massas.create_text(canvas_width * 0.5, canvas_height * 0.1,
+        text=f"Gráfico de Distribuição de Massa", font=("Inter", fontsize22, "bold"), fill="#304462", anchor = "center")
+
+        canvas_distr_massas.create_text(canvas_width * 0.265, canvas_height * 0.906,
+        text=f"Esquerdo", font=("Inter", fontsize-3, "bold"), fill="#304462", anchor = "center")
+
+        canvas_distr_massas.create_text(canvas_width * 0.62, canvas_height * 0.906,
+        text=f"Direito", font=("Inter", fontsize-3, "bold"), fill="#304462", anchor = "center")
+
+        canvas_distr_massas.create_text(canvas_width * 0.9, canvas_height * 0.89,
+        text=f"Sem carga", font=("Inter", fontsize-8), fill="#304462", anchor = "center")
+
+        canvas_distr_massas.create_text(canvas_width * 0.9, canvas_height * 0.16,
+        text=f"Carga máxima", font=("Inter", fontsize-8), fill="#304462", anchor = "center")
+
+        
+
+        # Criar a figura e o eixo do colormap
+        figcolormap = plt.Figure(figsize=(0.25, 4.5))  # Mais fino e mais baixo
+        axcolormap = figcolormap.add_subplot(111)
+
+        # Criar o gradiente para o colormap na vertical
+        gradient = np.linspace(0, 1, 256).reshape(-1, 1)  # Mantém o gradiente corretamente
+        axcolormap.imshow(gradient, aspect="auto", cmap="jet", origin="lower")
+
+        # Remover tudo (eixos, bordas, ticks)
+        axcolormap.set_xticks([])
+        axcolormap.set_yticks([])
+        axcolormap.set_frame_on(False)  # Remove a borda branca  
+
+        # Ajustar os limites do subplot para eliminar bordas superiores e inferiores
+        figcolormap.subplots_adjust(left=0, right=1, top=1, bottom=0)
+
+        # Criar o canvas no Tkinter
+        canvas_grafico_jet = Canvas(canvas_distr_massas, 
+            width=(physical_width * 3) / 100,  
+            height=(physical_height * 30) / 200,  # Altura reduzida
+            bg="#ffffff",
+            highlightthickness=0)  # Sem borda no Canvas
+        canvas_grafico_jet.place(relx=0.9, rely=0.525, anchor="center")  # Ajustar posição
+
+        canvasMatplotcolormap = FigureCanvasTkAgg(figcolormap, master=canvas_grafico_jet)
+        canvasMatplotcolormap.get_tk_widget().pack()
+
+        canvasMatplotcolormap.draw()  # Atualizar exibição
+
         btn_paciente.config(fg="#0B2243", image = bg_btn_resultado)
         btn_centro_pressao.configure(fg="#0B2243", image=bg_btn_resultado)
         btn_distr_massas.configure(fg="#E0E0E0", image=bg_btn_click)
@@ -2382,7 +2487,8 @@ def salvar_dados():
     global D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11
     global P0, P1, P2, P3, P4, P5, P6, P7
     global allData0, allData1, allData2, allData3, allData4, allData5, allData6, allData7, allData8, allData9, allData10, allData11, allData12, allData13, allData14, allData15, allData16, allData17, allData18, allData19
-    global dxMax, dxMin, dyMax, dyMin
+    global dxMax, dxMin, dyMax, dyMin, file_path
+
     
     vdcp = dados_velocidade_lista[0]
     Dx = dados_velocidade_lista[1]
@@ -2399,6 +2505,7 @@ def salvar_dados():
     qtd_quedas = dados_paciente_lista[8]
     tem_labirintite = dados_paciente_lista[9]
     tratamento_labirintite = dados_paciente_lista[10]
+    membro_dominante = dados_paciente_lista[11]
 
     data = {
         'Nome': nome,
@@ -2412,6 +2519,7 @@ def salvar_dados():
         'Quantidade_de_quedas': qtd_quedas,
         'Labirintite': tem_labirintite,
         'Tratamento_de_labirintite': tratamento_labirintite,
+        'Membro_dominante': membro_dominante,
         'D0': allData0,
         'D1': allData1,
         'D2': allData2,
@@ -2443,16 +2551,39 @@ def salvar_dados():
     except:
         print("Erro ao salvar")
 
+    DM_resultados()
+
     show_frame(tela_resultado)
     exibir_canvas(canvas_paciente)
+
+def DM_resultados():
+    
+    global numDM, Dados, nLinhas, nColunas,z, loopDis, file_path
+    
+    #list_of_files = glob.glob('*.xlsx') #* means all if need specific format then #.csv
+    #latest_file = max(list_of_files, key= os.path.getctime)
+    Dados = pd.read_excel(file_path)
+
+    #print(file_path)
+
+    numDM = 0
+    nLinhas = 50
+    nColunas = 30
+    z = np.zeros((nLinhas,nColunas))
+    loopDis = 1
+
+    root.after(10, ColetarDis)
+
 
 def check_box_event():
     # Identifica a variável associada à CheckBox
 
-    ax4.clear()
+    ax4.clear()        
+    ax4.set_xlabel("X amostras/s", fontsize = fontsize14-3, color = "#304462", labelpad = 10, fontname = "Arial", fontweight = "bold")
+    ax4.set_ylabel("Y intensidade [mV]", fontsize = fontsize14-3, color = "#304462", labelpad = 8, fontname = "Arial", fontweight = "bold")
     
     if check_vars[0].get() == "on":
-        ax4.plot(allData4, color='blue')
+        ax4.plot(allData4, color='blue')      
 
     if check_vars[1].get() == "on":
         ax4.plot(allData5, color='red')
@@ -2461,7 +2592,7 @@ def check_box_event():
         ax4.plot(allData6, color='yellow')
 
     if check_vars[3].get() == "on":
-        ax4.plot(allData7, color='purple')
+        ax4.plot(allData7, color='purple')    
 
     canvasMatplot4.draw() #Desenha o grafico
     
@@ -2576,6 +2707,10 @@ btn_emg = Button(
 btn_emg.place(relx=0.2474, rely=0.532, anchor = 'nw')
 
 def restart(frame): 
+    global loopDis
+
+    loopDis = 0
+
     frame.tkraise()
     canvas_paciente.delete("all")
     canvas_centro_pressao.delete("all")
@@ -2595,5 +2730,18 @@ btn_voltarInicial = Button(
     activeforeground="#f7c360",
     command=lambda: restart(tela_inicial))
 btn_voltarInicial.place(relx= 0.1042, rely=0.8611)
+
+btn_exportar = Button(
+    tela_resultado,
+    text="EXPORTAR",
+    font=("Inter", fontsize,"bold"),
+    fg="#E0E0E0",
+    image=bg_btn,
+    width=((physical_width * 9.9) / 100)-2,
+    height=((physical_height * 9.26) / 100)-2,
+    compound="center",
+    bd=0,
+    activeforeground="#f7c360")
+btn_exportar.place(relx=0.7969, rely=0.8611)
 
 root.mainloop()
