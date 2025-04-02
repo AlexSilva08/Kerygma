@@ -1405,6 +1405,8 @@ def ManterColeta():
     root.after(10, ColetarDados)
 
 
+
+
 def ControlarMovimento():
 
     global matriz_parametros, NMov, TempoStart, Movendo, Passo, AngYAtual, AngXAtual, RepAtual, AngX, AngY
@@ -1559,7 +1561,7 @@ def ControlarMovimento():
     else:
         PararColeta()
 
-#MARK: COLETAR DADOS DO TEENSY
+#MARK: COLETAR DADOS DA PLATAFORMA
 
 def ColetarDados():
     
@@ -1680,7 +1682,7 @@ def ColetarDados():
         ard1.write(str.encode('F,0,0,5\n')) #Interrompe a coleta
         time.sleep(1) #Espera 1 segundo para coletar todos os dados
 
-        ard1.close() #Fecha a conexão com o Teensy
+        ard1.close() #Fecha a conexão com a plataforma
         subprocess.call("taskkill /f /im WindowsTerminal.exe", shell=True) #Fecha programa de coleta
     
     fim = time.time()
@@ -1700,7 +1702,7 @@ btn_iniciarCarregamento = Button(
     compound="center",
     bd=0,
     activeforeground="#f7c360",
-    command=lambda: ManterColeta() #show_frame(tela_carregamento) #Com o teensy mudar para ManterColeta()
+    command=lambda: show_frame(tela_carregamento) #Com o teensy mudar para ManterColeta()
 )
 btn_iniciarCarregamento.place(relx=0.7969, rely=0.8611)
 
