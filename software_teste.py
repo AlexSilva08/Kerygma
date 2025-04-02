@@ -18,7 +18,7 @@ import pandas as pd
 import openpyxl
 from tkinter import filedialog
 from tkinter.filedialog import askopenfilename
-import time
+from datetime import datetime
 import math
 from tkinter import ttk
 import os
@@ -2445,7 +2445,7 @@ def salvar_dados():
     Dx = dados_velocidade_lista[1]
     Dy = dados_velocidade_lista[2]
     
-    nome = dados_paciente_lista[0]
+    nome = dados_paciente_lista[0] # Nome do paciente usado para nome do arquivo
     idade = dados_paciente_lista[1]
     altura = dados_paciente_lista[2]
     peso = dados_paciente_lista[3]
@@ -2459,7 +2459,7 @@ def salvar_dados():
     membro_dominante = dados_paciente_lista[11]
 
     data = {
-        'Nome': nome,
+        'Nome': nome, 
         'Idade': idade,
         'Altura': altura,
         'Peso': peso,
@@ -2493,16 +2493,25 @@ def salvar_dados():
     }
 
     df = pd.DataFrame(data)
-
-    file_path = filedialog.asksaveasfilename(defaultextension='.xlsx', title="Salvar dados coletados",
-                                                filetypes=[("Excel files", "*.xlsx")])
+    
+    # Obtendo caminho da pasta Documentos do usuário
+    pasta_documentos = os.path.join(os.path.expanduser("~"), "Documents")
+    
+    # Criando pasta com o nome do paciente dentro da pasta Documentos, se não existir
+    pasta_paciente = os.path.join(pasta_documentos, nome)
+    if not os.path.exists(pasta_paciente):
+        os.makedirs(pasta_paciente)
+    
+    # Obtendo data e hora atuais para o nome do arquivo no formato DD MM AAAA
+    timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+    nome_arquivo = f"{nome}_{timestamp}_dados.xlsx"
+    caminho_arquivo = os.path.join(pasta_paciente, nome_arquivo)
+    
     try:
-        df.to_excel(file_path, engine='openpyxl')
-        messagebox.showinfo(title=None, message="Salvo com sucesso!")
-    except:
-        print("Erro ao salvar")
-
-    DM_resultados()
+        df.to_excel(caminho_arquivo, engine='openpyxl')
+        messagebox.showinfo(title=None, message=f"Salvo com sucesso em:\n{caminho_arquivo}")
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
 
     show_frame(tela_resultado)
     exibir_canvas(canvas_paciente)
