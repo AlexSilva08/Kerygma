@@ -18,7 +18,6 @@ import pandas as pd
 import openpyxl
 from tkinter import filedialog
 from tkinter.filedialog import askopenfilename
-import time
 import math
 from tkinter import ttk
 import os
@@ -30,6 +29,8 @@ import pyautogui
 from screeninfo import get_monitors
 from datetime import datetime
 import statistics
+import shutil
+from datetime import datetime
 
 from fpdf import FPDF
 from PIL import Image
@@ -2087,6 +2088,8 @@ def AvancarResultados():
     global dxMax, dxMin, dyMax, dyMin
     global img_COP
 
+    nome = dados_paciente_lista[0]
+
     allData0 = [0]
     allData1 = [0]
     allData2 = [0]
@@ -2234,7 +2237,33 @@ def AvancarResultados():
 
     dados_velocidade_lista = [vdcp, Dx, Dy]
 
-    os.remove(latest_file) #Removendo o arquivo txt
+    #os.remove(latest_file) #Removendo o arquivo txt
+
+    # Caminho da pasta para onde o arquivo foi movido
+    folder_pathTXT = os.path.expanduser('~') + '/Documents/Dados de texto EquiSystem k2000'
+
+    # Verifica se a pasta existe, se não, cria a pasta
+    if not os.path.exists(folder_pathTXT):
+        os.makedirs(folder_pathTXT)
+
+    # Criando pasta com o nome do paciente dentro da pasta Pacientes EquiSystem K200, se não existir
+    pasta_pacienteTXT = os.path.join(folder_pathTXT, nome)
+    if not os.path.exists(pasta_pacienteTXT):
+        os.makedirs(pasta_pacienteTXT)   
+
+    # Obtendo a data e hora atual para incluir no nome do arquivo
+    timestamp = datetime.now().strftime('%d-%m-%Y_%H-%M-%S')
+
+    # Criando o novo nome do arquivo
+    new_filename = f"{nome}_{timestamp}.txt"
+
+    # Caminho completo do novo arquivo
+    new_file_path = os.path.join(pasta_pacienteTXT, new_filename)
+
+    # Movendo o arquivo para a pasta com o novo nome
+    shutil.move(latest_file, new_file_path)
+
+    print(f"Arquivo renomeado e movido para: {new_file_path}")
 
     salvar_dados()
 
