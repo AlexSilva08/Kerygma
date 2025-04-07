@@ -2120,6 +2120,8 @@ def AvancarResultados():
     with open(latest_file) as fd:
         rd = csv.reader(fd,delimiter="\t")
 
+        next(rd)  # Pula a primeira linha
+
         for row in rd:
 ###################################################################################################
 
