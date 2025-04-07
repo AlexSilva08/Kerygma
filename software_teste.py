@@ -2242,7 +2242,7 @@ def AvancarResultados():
     #os.remove(latest_file) #Removendo o arquivo txt
 
     # Caminho da pasta para onde o arquivo foi movido
-    folder_pathTXT = os.path.expanduser('~') + '/Documents/Dados de texto EquiSystem k2000'
+    folder_pathTXT = os.path.expanduser('~') + '/Documents/Dados txt EquiSystem k2000'
 
     # Verifica se a pasta existe, se não, cria a pasta
     if not os.path.exists(folder_pathTXT):
