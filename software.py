@@ -28,6 +28,11 @@ import ctypes
 import textwrap
 import pyautogui
 from screeninfo import get_monitors
+from datetime import datetime
+import statistics
+
+from fpdf import FPDF
+from PIL import Image
 
 # Ajuste de DPI
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
@@ -597,7 +602,7 @@ def armazenar_dados():
 
 #MARK: Carregar perfil
 def CarregarPerfil():
-    global allData4, allData5, allData6, allData7, allData8, allData9, allData10, allData11, numDM, Dados, nLinhas, nColunas,z, loopDis
+    global allData4, allData5, allData6, allData7, allData8, allData9, allData10, allData11, numDM, Dados, nLinhas, nColunas,z, loopDis, img_COP
 
     filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
     Dados = pd.read_excel(filename)
@@ -698,10 +703,12 @@ def CarregarPerfil():
     ax2.set_ylabel("Deslocamento em Y [cm]", fontsize = fontsize14-3, color = "#304462", labelpad = 8, fontname = "Arial", fontweight = "bold")
 
     
-    ax4.set_xlabel("X amostras/s", fontsize = fontsize14-3, color = "#304462", labelpad = 10, fontname = "Arial", fontweight = "bold")
-    ax4.set_ylabel("Y intensidade [mV]", fontsize = fontsize14-3, color = "#304462", labelpad = 10, fontname = "Arial", fontweight = "bold")
+    ax4.set_xlabel("Amostras/s", fontsize = fontsize14-3, color = "#304462", labelpad = 10, fontname = "Arial", fontweight = "bold")
+    ax4.set_ylabel("Intensidade [mV]", fontsize = fontsize14-3, color = "#304462", labelpad = 10, fontname = "Arial", fontweight = "bold")
 
     canvasMatplot2.draw() #Desenha o grafico
+
+    img_COP = Image.fromarray(np.asarray(canvasMatplot2.buffer_rgba()))
     
     global dados_paciente_lista
     dados_paciente_lista = [nome_paciente, idade_paciente, altura_paciente, peso_paciente, sexo_paciente, tem_dor, nivel_dor, tem_queda, qtd_quedas, tem_labirintite, tratamento_labirintite, membro_dominante]
@@ -1059,7 +1066,7 @@ def adicionar_linha():
     
 
 def remover_linha():
-    global matriz_parametros, combobox_criada, frames_widgets
+    global matriz_parametros, combobox_criada, frames_widgets, index_radio
 
     # Verifica se há elementos para remover
     if len(matriz_parametros) > 0:
@@ -1074,7 +1081,12 @@ def remover_linha():
         # Verifica e remove o último combobox
         if combobox_criada:
             combobox_criada.pop()
-            
+
+        # Se a linha removida era a atualmente selecionada, oculta os canvases
+        if index_radio >= len(matriz_parametros):  
+            canvas_movimentacao.place_forget()
+            canvas_oscilacao.place_forget()
+        
         print(f"Matriz atualizada: {matriz_parametros}")
         
 def atualizar_indices():
@@ -1244,6 +1256,16 @@ def play_gif(label, gif_path, size=(300, 300)):  # Define o tamanho desejado
 
     update(0)  # Inicia a animação
 
+def verificar_matriz():
+    for i, linha in enumerate(matriz_parametros):
+        if linha[0] == 0 or all(valor == 0 for valor in linha[1:7]):
+            messagebox.showwarning("Atenção", f"A linha {i+1} falta confirmação de dados. Por favor, revise.")
+            return  # Interrompe a execução para não avançar
+
+    # Se passar pela verificação, inicia a coleta
+    ManterColeta()
+    
+
 btn_iniciarColeta = Button(
     tela_parametros,
     text="COLETAR",
@@ -1256,7 +1278,7 @@ btn_iniciarColeta = Button(
     bd=0,
     state="disabled",
     activeforeground="#f7c360",
-    command=lambda: ManterColeta()
+    command= verificar_matriz
 )
 btn_iniciarColeta.place(relx=0.7969, rely=0.8611)
 
@@ -1367,7 +1389,6 @@ def configurar_canvas_movimentacao():
 
         if iniciarColeta >= 1:
             btn_iniciarColeta.configure(state='normal', activeforeground="#f7c360")
-            print("Botão ativado!")
 
         print(f"Matriz atualizada: {matriz_parametros}")
 
@@ -1917,7 +1938,8 @@ def ColetarDados():
 
         ard1.close() #Fecha a conexão com o Teensy
         subprocess.call("taskkill /f /im WindowsTerminal.exe", shell=True) #Fecha programa de coleta
-    
+        AvancarResultados()
+
     fim = time.time()
     Dados_Tempo = fim - start
 
@@ -2063,6 +2085,7 @@ def AvancarResultados():
     global P0, P1, P2, P3, P4, P5, P6, P7
     global allData0, allData1, allData2, allData3, allData4, allData5, allData6, allData7, allData8, allData9, allData10, allData11, allData12, allData13, allData14, allData15, allData16, allData17, allData18, allData19
     global dxMax, dxMin, dyMax, dyMin
+    global img_COP
 
     allData0 = [0]
     allData1 = [0]
@@ -2183,6 +2206,8 @@ def AvancarResultados():
 
     canvasMatplot2.draw() #Desenha o grafico
 
+    img_COP = Image.fromarray(np.asarray(canvasMatplot2.buffer_rgba()))
+
     global dados_velocidade_lista
 
     #MARK: Definindo como 0 para teste sem o teensy
@@ -2209,6 +2234,8 @@ def AvancarResultados():
 
     dados_velocidade_lista = [vdcp, Dx, Dy]
 
+    os.remove(latest_file) #Removendo o arquivo txt
+
     salvar_dados()
 
 
@@ -2216,7 +2243,7 @@ def AvancarResultados():
 
 btn_avancarResultado = Button(
     tela_carregamento,
-    text="RESULTADOS",
+    text="AGUARDE...",
     font=("Inter", fontsize,"bold"),
     fg="#E0E0E0",
     image=bg_btn,
@@ -2226,7 +2253,6 @@ btn_avancarResultado = Button(
     bd=0,
     activeforeground="#f7c360",
     #MARK: Botão para carregar o arquivo do excel
-    command=lambda: AvancarResultados()
 )
 btn_avancarResultado.place(relx=0.7969, rely=0.8611)
 
@@ -2363,9 +2389,9 @@ def exibir_dados_paciente():
                                 text=f"SEM TRATAMENTO", font=("Inter", fontsize22-2, "bold"), fill="#0B2243", anchor = 'center')
 
     
-
 # Função para exibir o canvas correto
 def exibir_canvas(canvas):
+
     canvas_paciente.place_forget()
     canvas_distr_massas.place_forget()
     canvas_emg.place_forget()
@@ -2407,6 +2433,7 @@ def exibir_canvas(canvas):
 
 
     if canvas == canvas_distr_massas:
+
         canvas_width = canvas_distr_massas.winfo_width()
         canvas_height = canvas_distr_massas.winfo_height()
 
@@ -2438,7 +2465,8 @@ def exibir_canvas(canvas):
         # Remover tudo (eixos, bordas, ticks)
         axcolormap.set_xticks([])
         axcolormap.set_yticks([])
-        axcolormap.set_frame_on(False)  # Remove a borda branca  
+        axcolormap.set_frame_on(False)  # Remove a borda branca
+        
 
         # Ajustar os limites do subplot para eliminar bordas superiores e inferiores
         figcolormap.subplots_adjust(left=0, right=1, top=1, bottom=0)
@@ -2543,16 +2571,32 @@ def salvar_dados():
 
     df = pd.DataFrame(data)
 
-    file_path = filedialog.asksaveasfilename(defaultextension='.xlsx', title="Salvar dados coletados",
-                                                filetypes=[("Excel files", "*.xlsx")])
+    # Obtendo caminho da pasta Documentos do usuário
+    pasta_documentos = os.path.join(os.path.expanduser("~"), "Documents")
+    
+    # Criando pasta com o nome (Pacientes EquiSystem K2000) dentro da pasta Documentos, se não existir
+    pasta_pacienteAll = os.path.join(pasta_documentos, "Pacientes EquiSystem K2000")
+    if not os.path.exists(pasta_pacienteAll):
+        os.makedirs(pasta_pacienteAll)
+    
+    # Criando pasta com o nome do paciente dentro da pasta Pacientes EquiSystem K200, se não existir
+    pasta_paciente = os.path.join(pasta_pacienteAll, nome)
+    if not os.path.exists(pasta_paciente):
+        os.makedirs(pasta_paciente)
+    
+    # Obtendo data e hora atuais para o nome do arquivo no formato DD MM AAAA
+    timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+    nome_arquivo = f"{nome}_{timestamp}_dados.xlsx"
+    file_path = os.path.join(pasta_paciente, nome_arquivo)
+    
     try:
         df.to_excel(file_path, engine='openpyxl')
-        messagebox.showinfo(title=None, message="Salvo com sucesso!")
-    except:
-        print("Erro ao salvar")
+        messagebox.showinfo(title=None, message=f"Salvo com sucesso em:\n{file_path}")
+    except Exception as e:
+        print(f"Erro ao salvar: {e}")
 
     DM_resultados()
-
+    
     show_frame(tela_resultado)
     exibir_canvas(canvas_paciente)
 
@@ -2660,7 +2704,7 @@ btn_paciente.place(relx=0.1042, rely=0.32, anchor = 'nw')
 
 btn_centro_pressao = Button(
     tela_resultado,
-    text="CENTRO DE\nPRESSÃO",
+    text="ESTABILOMETRIA",
     font=("Inter", fontsize22,"bold"),
     fg="#0B2243",
     image=bg_btn_resultado,
@@ -2676,7 +2720,7 @@ btn_centro_pressao.place(relx=0.1042, rely=0.532, anchor = 'nw')
 
 btn_distr_massas = Button(
     tela_resultado,
-    text="DISTRIBUIÇÃO\nDE MASSA",
+    text="BAROPODOMETRIA",
     font=("Inter", fontsize22,"bold"),
     fg="#0B2243",
     image=bg_btn_resultado,
@@ -2707,7 +2751,7 @@ btn_emg = Button(
 btn_emg.place(relx=0.2474, rely=0.532, anchor = 'nw')
 
 def restart(frame): 
-    global loopDis
+    global loopDis, matriz_parametros
 
     loopDis = 0
 
@@ -2716,6 +2760,14 @@ def restart(frame):
     canvas_centro_pressao.delete("all")
     canvas_distr_massas.delete("all")
     canvas_emg.delete("all")
+
+    matriz_parametros = []  # Zera a matriz
+
+    for widget in tela_parametros.winfo_children():
+        widget.place_forget()  # Remove todos os elementos da tela
+    
+    for widget in canvas_parametros.winfo_children():
+        widget.place_forget() 
 
 btn_voltarInicial = Button(
     tela_resultado,
@@ -2731,6 +2783,485 @@ btn_voltarInicial = Button(
     command=lambda: restart(tela_inicial))
 btn_voltarInicial.place(relx= 0.1042, rely=0.8611)
 
+def CriarRelatorio():
+    global Dados, img_COP, img_Dis, img_EMG, nColunas, nLinhas, img_Colormap
+
+    nome_paciente = Dados.Nome[0]
+    idade_paciente = Dados.Idade[0]
+    altura_paciente = Dados.Altura[0]
+    peso_paciente = Dados.Peso[0]
+    sexo_paciente = Dados.Sexo[0]
+    tem_dor = Dados.Dor[0]
+    nivel_dor = Dados.Nivel_da_dor[0]
+    tem_queda = Dados.Queda[0]
+    qtd_quedas = Dados.Quantidade_de_quedas[0]
+    tem_labirintite = Dados.Labirintite[0]
+    tratamento_labirintite = Dados.Tratamento_de_labirintite[0]
+    membro_dominante = Dados.Membro_dominante[0]
+    vdcp = round(Dados.Tempo[0],2)
+    Dx = round(Dados.Dx[0],2)
+    Dy = round(Dados.Dy[0],2)
+
+    P0 = statistics.mean(Dados.D12)
+    P1 = statistics.mean(Dados.D13)
+    P2 = statistics.mean(Dados.D14)
+    P3 = statistics.mean(Dados.D15)
+
+    P4 = statistics.mean(Dados.D16)
+    P5 = statistics.mean(Dados.D17)
+    P6 = statistics.mean(Dados.D18)
+    P7 = statistics.mean(Dados.D19)
+
+    ######################################### Calculo da distribuição de massa média ##############################
+
+    DX = 10
+    DY = 20
+
+    DSX = 20 / nColunas
+    DSY = 40 / nLinhas
+
+    nLinhas = nLinhas + 1
+    nColunas = nColunas + 1
+
+    nColunas2 = math.ceil(nColunas/2)
+
+    CopXe = 0
+    CopYe = 0
+    CopYd = 0
+    CopXd = 0
+   
+    if (P0+P1+P2+P3) > 0:
+        CopXe = (P1*DX + P2*DX - P0*DX - P3+DX)/(P0+P1+P2+P3)
+        CopYe = (P0*DY + P1*DY - P2*DY - P3*DY)/(P0+P1+P2+P3)
+        
+
+    if (P4+P5+P6+P7) > 0:   
+        CopYd = (P4*DY + P5*DY - P6*DY - P7*DY)/(P4+P5+P6+P7)
+        CopXd = (P5*DX + P6*DX - P4*DX - P7+DX)/(P4+P5+P6+P7)
+
+    DMXesquerdo = round(((CopXe + 10) * (nColunas/4))/10)
+    DMYesquerdo = round(((CopYe + 20) * (nLinhas/2))/20)
+
+    DMXdireita = (round(((CopXd + 10) * (nColunas/4))/10))
+    DMYdireita = round(((CopYd + 20) * (nLinhas/2))/20)
+
+    #print(f"DMXesquerdo: {DMXesquerdo}, DMYesquerdo: {(DMYesquerdo)}, DMXdireita: {DMXdireita}, DMYdireita: {(DMYdireita)}")
+
+    CorEsq = (P0+P1+P2+P3)/(P0+P1+P2+P3+P4+P5+P6+P7)
+    CorDir = (P4+P5+P6+P7)/(P0+P1+P2+P3+P4+P5+P6+P7)
+
+    #CorEsqX = (CorEsq/2) / math.ceil(nColunas/2)
+    CorEsqX = (CorEsq/2)
+    #CorEsqY = (CorEsq/2) / nLinhas
+    CorEsqY = (CorEsq/2)
+
+    CorDirX = (CorDir/2)
+    CorDirY = (CorDir/2)
+
+    for Y in range(1,(nLinhas)):
+        for X in range(1,(nColunas)):
+
+            if X <= nColunas/2:
+
+                z[Y-1][X-1] = (P0/(X*DSX) + P0/(Y*DSY) + P1/(math.ceil(nColunas2 - X)*DSX) + P1/(Y*DSY) + P2/(math.ceil(nColunas2 - X)*DSX) + P2/(math.ceil(nLinhas - Y)*DSY) + P3/(X*DSX) + P3/(math.ceil(nLinhas - Y)*DSY)) / ((((P0+P1+P2+P3+P4+P5+P6+P7)/DSX)+((P0+P1+P2+P3+P4+P5+P6+P7)/DSY)))
+
+                try:
+                    ValorEsqX = CorEsqX / (math.ceil(nColunas2)/(math.ceil(nColunas2) - abs(DMXesquerdo - X)))
+
+                except:
+                    ValorEsqX = CorEsqX / (math.ceil(nColunas2)/0.0001)
+
+                try:
+                    ValorEsqY = CorEsqY / (math.ceil(nLinhas-1)/(math.ceil(nLinhas-1) - abs(DMYesquerdo - Y)))
+
+                except:
+                    ValorEsqY = CorEsqY / (math.ceil(nLinhas-1)/0.0001)
+                
+                z[Y-1][X-1] =+ (ValorEsqX + ValorEsqY)
+
+            else:
+
+                X2=math.ceil(X-(nColunas/2))
+
+
+                z[Y-1][X-1] = (P4/(X2*DSX) + P4/(Y*DSY) + P5/(math.ceil(nColunas2 - X2)*DSX) + P5/(Y*DSY) + P6/(math.ceil(nColunas2 - X2)*DSX) + P6/(math.ceil(nLinhas - Y)*DSY) + P7/(X2*DSX) + P7/(math.ceil(nLinhas - Y)*DSY)) / ((((P0+P1+P2+P3+P4+P5+P6+P7)/DSX)+((P0+P1+P2+P3+P4+P5+P6+P7)/DSY)))
+
+                try:
+                    ValorDirX = CorDirX / (math.ceil(nColunas2)/(math.ceil(nColunas2) - abs(DMXdireita - X2)))
+                except:
+                    ValorDirX = CorDirX / (math.ceil(nColunas2)/0.0001)
+
+                try:
+                    ValorDirY = CorDirY / (math.ceil(nLinhas-1)/(math.ceil(nLinhas-1) - abs(DMYdireita - Y)))
+                except:
+                    ValorDirY = CorDirY / (math.ceil(nLinhas-1)/0.0001)
+                
+
+                z[Y-1][X-1] =+ (ValorDirX + ValorDirY)
+
+
+    #z[DMYesquerdo][DMXesquerdo] =+ CorEsq   
+    #z[DMYdireita][DMXdireita + nColunas2] =+ CorDir         
+
+    #print(z[DMYdireita][DMXdireita])
+
+###########################################################################
+
+    nLinhas = nLinhas - 1
+    nColunas = nColunas - 1
+
+    #print(z[0])
+
+    #z = np.flipud(z)
+    
+    c = ax6.pcolor(z, cmap='jet', vmin=0, vmax=1)
+
+    fig6.tight_layout()
+    plt.show()
+    
+    canvasMatplot6.draw() #Desenha o grafico
+
+    img_Dis = Image.fromarray(np.asarray(canvasMatplot6.buffer_rgba()))
+
+
+    ################################################################################################################
+
+    ########################################## Gráficos EMG ###############################################
+      
+    ax4.clear()        
+    ax4.set_xlabel("X amostras/s")
+    ax4.set_ylabel("Y intensidade [mV]")
+    
+    ax4.plot(allData4, color='blue')      
+
+    ax4.plot(allData5, color='red')
+
+    ax4.plot(allData6, color='yellow')
+
+    ax4.plot(allData7, color='purple')    
+
+
+    canvasMatplot4.draw() #Desenha o grafico
+    img_EMG = Image.fromarray(np.asarray(canvasMatplot4.buffer_rgba()))
+
+
+
+    #######################################################################################################
+
+    ########################################## Crialçao da legenda do gráfico de distribuição de masa #######################
+    figcolormap = plt.Figure(figsize=(5.14, 0.15))  # Mais fino e mais baixo
+    axcolormap = figcolormap.add_subplot(111)
+
+    # Criar o gradiente para o colormap na vertical
+    gradient = np.linspace(0, 1, 256).reshape(1, -1)  # Mantém o gradiente corretamente
+    axcolormap.imshow(gradient, aspect="auto", cmap="jet", origin="lower")
+
+    # Remover tudo (eixos, bordas, ticks)
+    axcolormap.set_xticks([])
+    axcolormap.set_yticks([])
+    axcolormap.set_frame_on(False)  # Remove a borda branca  
+
+    # Ajustar os limites do subplot para eliminar bordas superiores e inferiores
+    figcolormap.subplots_adjust(left=0, right=1, top=1, bottom=0)
+
+    canvasMatplotcolormap = FigureCanvasTkAgg(figcolormap)
+
+    canvasMatplotcolormap.draw()  # Atualizar exibição
+
+    img_Colormap = Image.fromarray(np.asarray(canvasMatplotcolormap.buffer_rgba()))
+
+    ########################################## Criação Relatorio ###################################################
+
+    pdf = FPDF()
+
+    ######################## Pagina 1 #############################
+    pdf.add_page()
+
+    pdf.image("UI/logo_dourado.png", x=10, y=10, h=(12), w=(37))
+    pdf.image("UI/Logotipo-K2000.png", x=165, y=10, h=(14), w=(34))
+    pdf.set_y(12)
+    pdf.set_font('Helvetica', size=24, style="B")
+    pdf.cell(text="Relatório - EquiSystem",w=190,align="c")
+    pdf.ln()
+    pdf.ln()
+    pdf.ln()
+
+
+    pdf.set_font('Helvetica', size=20, style="B")
+    pdf.cell(text="Dados do Paciente",w=190,align="c")
+    pdf.ln()
+    pdf.ln()
+    pdf.ln()
+    pdf.ln()
+
+    pdf.set_font('Helvetica', size=12)
+    pdf.cell(text=f"Nome do Paciente: {nome_paciente}")
+    pdf.ln()
+    pdf.ln()
+
+    pdf.cell(text=f"Idade do Paciente: {idade_paciente}")
+    pdf.ln()
+    pdf.ln()
+
+    pdf.cell(text=f"Alturado Paciente: {altura_paciente}")
+    pdf.ln()
+    pdf.ln()
+
+    pdf.cell(text=f"Peso do Paciente: {peso_paciente}")
+    pdf.ln()
+    pdf.ln()
+
+    pdf.cell(text=f"Sexo do Paciente: {sexo_paciente}")
+    pdf.ln()
+    pdf.ln()
+    pdf.ln()
+    pdf.ln()
+
+    if tem_dor == "Sim":
+
+        pdf.cell(text=f"Tem Dor? {tem_dor}")
+        pdf.ln()
+        pdf.ln()
+
+        pdf.cell(text=f"Nivel de Dor: {nivel_dor}")
+        pdf.ln()
+        pdf.ln()
+        pdf.ln()
+        pdf.ln()
+
+    else:
+
+        pdf.cell(text=f"Tem Dor? {tem_dor}")
+        pdf.ln()
+        pdf.ln()
+        pdf.ln()
+        pdf.ln()
+
+    if tem_queda == "Sim":
+
+        pdf.cell(text=f"Houve eventos de Queda? {tem_queda}")
+        pdf.ln()
+        pdf.ln()
+
+        pdf.cell(text=f"Quantidade: {qtd_quedas}")
+        pdf.ln()
+        pdf.ln()
+        pdf.ln()
+        pdf.ln()
+
+    else:
+
+        pdf.cell(text=f"Houve eventos de Queda? {tem_queda}")
+        pdf.ln()
+        pdf.ln()
+        pdf.ln()
+        pdf.ln()
+
+    if tem_labirintite == "Sim":
+
+        pdf.cell(text=f"Teve crie de labirintite no último mês? {tem_labirintite}")
+        pdf.ln()
+        pdf.ln()
+
+        pdf.cell(text=f"Tratamento utlizado: {tratamento_labirintite}")
+        pdf.ln()
+        pdf.ln()
+        pdf.ln()
+        pdf.ln()
+
+    else:
+
+        pdf.cell(text=f"Teve crie de labirintite no último mês? {tem_labirintite}")
+        pdf.ln()
+        pdf.ln()
+        pdf.ln()
+        pdf.ln()
+
+    pdf.cell(text=f"Membro Dominante: {membro_dominante}")
+    pdf.ln()
+    pdf.ln()
+
+    pdf.set_font('Helvetica', size=8)
+    pdf.set_y(274)
+    pdf.cell(text="Relatório produzido pelo EquiSystem 2000 da Kerygma Technology",w=190,align="R")
+
+    ######################## Pagina 2 #############################
+
+    pdf.add_page()
+
+    pdf.image("UI/logo_dourado.png", x=10, y=10, h=(12), w=(37))
+    pdf.image("UI/Logotipo-K2000.png", x=165, y=10, h=(14), w=(34))
+    pdf.set_y(12)
+    pdf.set_font('Helvetica', size=24, style="B")
+    pdf.cell(text="Relatório - EquiSystem",w=190,align="c")
+    pdf.ln()
+    pdf.ln()
+    pdf.ln()
+
+    
+    pdf.set_font('Helvetica', size=20, style="B")
+    pdf.cell(text="Deslocamento do Centro de Pressão",w=190,align="c")
+    pdf.ln()
+    pdf.ln()
+    pdf.ln()
+
+    pdf.set_font('Helvetica', size=12)
+    pdf.cell(text=f"Velocidade de desclicamento do centro de pressão (cm/s): {vdcp}")
+    pdf.ln()
+    pdf.ln()
+
+    pdf.cell(text=f"Maior distância percorrida no eixo X (cm/s): {Dx}")
+    pdf.ln()
+    pdf.ln()
+
+    pdf.cell(text=f"Maior distância percorrida no eixo Y (cm/s): {Dy}")
+    pdf.ln()
+    pdf.ln()
+
+    pdf.image(img_COP, w=pdf.epw)  # Make the image full width
+    pdf.ln()
+    pdf.ln()
+
+    pdf.set_font('Helvetica', size=8)
+    pdf.set_y(274)
+    pdf.cell(text="Relatório produzido pelo EquiSystem 2000 da Kerygma Technology",w=190,align="R")
+
+    ######################## Pagina 3 #############################
+
+    pdf.add_page()
+
+    pdf.image("UI/logo_dourado.png", x=10, y=10, h=(12), w=(37))
+    pdf.image("UI/Logotipo-K2000.png", x=165, y=10, h=(14), w=(34))
+    pdf.set_y(12)
+    pdf.set_font('Helvetica', size=24, style="B")
+    pdf.cell(text="Relatório - EquiSystem",w=190,align="c")
+    pdf.ln()
+    pdf.ln()
+    pdf.ln()
+
+    pdf.set_font('Helvetica', size=20, style="B")
+    pdf.cell(text="Distribuição de Massa",w=190,align="c")
+    pdf.ln()
+    pdf.ln()
+    pdf.ln()
+
+    pdf.image(img_Dis, w=pdf.epw)  # Make the image full width
+    pdf.image(img_Colormap, x=15)
+    pdf.ln()
+    pdf.ln()
+
+    pdf.set_font('Helvetica', size=8)
+    pdf.set_y(274)
+    pdf.cell(text="Relatório produzido pelo EquiSystem 2000 da Kerygma Technology",w=190,align="R")
+
+    ######################## Pagina 4 #############################
+
+    for x in range(5):
+
+        pdf.add_page()
+
+        pdf.image("UI/logo_dourado.png", x=10, y=10, h=(12), w=(37))
+        pdf.image("UI/Logotipo-K2000.png", x=165, y=10, h=(14), w=(34))
+        pdf.set_y(12)
+        pdf.set_font('Helvetica', size=24, style="B")
+        pdf.cell(text="Relatório - EquiSystem",w=190,align="c")
+        pdf.ln()
+        pdf.ln()
+        pdf.ln()
+
+        ax4.clear()        
+        ax4.set_xlabel("X amostras/s")
+        ax4.set_ylabel("Y intensidade [mV]")
+
+        if x == 0:
+
+            pdf.set_font('Helvetica', size=20, style="B")
+            pdf.cell(text="Eletromiografia - Canal 1",w=190,align="c")
+            pdf.ln()
+            pdf.ln()
+            pdf.ln()
+            
+            ax4.plot(allData4, color='blue')      
+
+        if x == 1:  
+
+            pdf.set_font('Helvetica', size=20, style="B")
+            pdf.cell(text="Eletromiografia - Canal 2",w=190,align="c")
+            pdf.ln()
+            pdf.ln()
+            pdf.ln()
+
+            ax4.plot(allData5, color='red')
+
+        if x == 2:
+
+            pdf.set_font('Helvetica', size=20, style="B")
+            pdf.cell(text="Eletromiografia - Canal 3",w=190,align="c")
+            pdf.ln()
+            pdf.ln()
+            pdf.ln()
+
+            ax4.plot(allData6, color='yellow')
+
+        if x == 3:
+
+            pdf.set_font('Helvetica', size=20, style="B")
+            pdf.cell(text="Eletromiografia - Canal 4",w=190,align="c")
+            pdf.ln()
+            pdf.ln()
+            pdf.ln()
+
+            ax4.plot(allData7, color='purple')    
+
+        if x == 4:
+
+            pdf.set_font('Helvetica', size=20, style="B")
+            pdf.cell(text="Eletromiografia - Todos os Canais",w=190,align="c")
+            pdf.ln()
+            pdf.ln()
+            pdf.ln()
+            
+            ax4.plot(allData4, color='blue')      
+
+            ax4.plot(allData5, color='red')
+
+            ax4.plot(allData6, color='yellow')
+
+            ax4.plot(allData7, color='purple')    
+
+
+        canvasMatplot4.draw() #Desenha o grafico
+        img_EMG = Image.fromarray(np.asarray(canvasMatplot4.buffer_rgba()))
+
+        pdf.image(img_EMG, w=pdf.epw)  # Make the image full width
+        pdf.ln()
+        pdf.ln()
+
+        pdf.set_font('Helvetica', size=8)
+        pdf.set_y(274)
+        pdf.cell(text="Relatório produzido pelo EquiSystem 2000 da Kerygma Technology",w=190,align="R")
+
+    timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+
+    PreFile = "Relatorio_" + nome_paciente + "_" + timestamp
+    
+    file_path = filedialog.asksaveasfilename(initialfile = PreFile, defaultextension='.pdf', title="Gerar Relatório",
+                                                filetypes=[("PDF files", "*.pdf")])
+    
+    pdf.output(file_path)
+
+    ax4.clear()  
+    ax6.clear()  
+
+    canvasMatplot4.draw() #Desenha o grafico
+    canvasMatplot6.draw() #Desenha o grafico
+
+    messagebox.showinfo("EquiSystem K2000", "Relatório salvo com sucesso")
+
+    
+
+    ################################################################################################################
+
 btn_exportar = Button(
     tela_resultado,
     text="EXPORTAR",
@@ -2741,7 +3272,8 @@ btn_exportar = Button(
     height=((physical_height * 9.26) / 100)-2,
     compound="center",
     bd=0,
-    activeforeground="#f7c360")
+    activeforeground="#f7c360",
+    command=lambda: CriarRelatorio())
 btn_exportar.place(relx=0.7969, rely=0.8611)
 
 root.mainloop()
